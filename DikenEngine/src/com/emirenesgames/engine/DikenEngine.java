@@ -19,15 +19,15 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 
-public class Engine extends Canvas implements Runnable {
+public class DikenEngine extends Canvas implements Runnable {
    private static final long serialVersionUID = 1L;
    public static int WIDTH = 320;
    public static int HEIGHT = 240;
    public static int SCALE = 3;
    
-   private static Engine localEngine;
+   private static DikenEngine localEngine;
    public static JFrame frame = new JFrame("Diken Engine");
-   private static List<String> staticArgs;
+   private static String[] staticArgs = null;
    
    private boolean keepRunning = true;
    
@@ -41,7 +41,7 @@ public class Engine extends Canvas implements Runnable {
    public GameRunner gameRunner;
    private static boolean enableCursor = true;
 
-   public Engine() {
+   public DikenEngine() {
       Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
       this.setPreferredSize(size);
       this.setMaximumSize(size);
@@ -60,7 +60,7 @@ public class Engine extends Canvas implements Runnable {
    public void init() {
       Art.init();
       Text.init();
-      this.screenImage = new BufferedImage(Engine.WIDTH, Engine.HEIGHT, 2);
+      this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
       this.screenBitmap = new Bitmap(this.screenImage);
       this.mouse = this.input.updateMouseStatus(SCALE);
       this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));
@@ -184,19 +184,19 @@ public class Engine extends Canvas implements Runnable {
    }
    
    public static void tickDimension() {
-	   int newWidth = Engine.getEngine().getWidth();
-	   int newHeight = Engine.getEngine().getHeight();
+	   int newWidth = DikenEngine.getEngine().getWidth();
+	   int newHeight = DikenEngine.getEngine().getHeight();
 	   
 	   Dimension d = new Dimension(newWidth, newHeight);
 	   
-	   Engine.WIDTH = (int) (d.getSize().getWidth() / Engine.SCALE);
-	   Engine.HEIGHT = (int) (d.getSize().getHeight() / Engine.SCALE);
+	   DikenEngine.WIDTH = (int) (d.getSize().getWidth() / DikenEngine.SCALE);
+	   DikenEngine.HEIGHT = (int) (d.getSize().getHeight() / DikenEngine.SCALE);
 	   
-	   if(Engine.getEngine().screenImage == null) return;
+	   if(DikenEngine.getEngine().screenImage == null) return;
 	   
-	   if(Engine.getEngine().screenImage.getWidth() != newWidth || Engine.getEngine().screenImage.getHeight() != newHeight) {
-		   Engine.getEngine().screenImage = new BufferedImage(Engine.WIDTH, Engine.HEIGHT, 2);
-		   Engine.getEngine().screenBitmap = new Bitmap(Engine.getEngine().screenImage);
+	   if(DikenEngine.getEngine().screenImage.getWidth() != newWidth || DikenEngine.getEngine().screenImage.getHeight() != newHeight) {
+		   DikenEngine.getEngine().screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
+		   DikenEngine.getEngine().screenBitmap = new Bitmap(DikenEngine.getEngine().screenImage);
 	   }
    }
 
@@ -211,37 +211,40 @@ public class Engine extends Canvas implements Runnable {
       }
    }
    
-   public static Engine getEngine() {
+   public static DikenEngine getEngine() {
 	   return localEngine;
    }
    
    public static void setArgs(String[] args) {
-	   List<String> list = Arrays.asList(args);
-	   if(list == null) return;
-	   staticArgs = list;
+	   staticArgs = args;
    }
    
    public static String getArgValue(String s) {
 	   if(s == null) return "";
 	   if(staticArgs == null) return "";
-	   String value = staticArgs.get(staticArgs.indexOf(s));
-	   String[] a = value.split("=");
-	   if(a[0].contains(s)) {
-		   return a[1];
+	   String value = "";
+	   for (int i = 0; i < staticArgs.length; i++) {
+		   if (staticArgs[i].startsWith(s)) {
+			   value = staticArgs[i];
+		   }
 	   }
-	   return "";
+	   if (value.isEmpty()) {
+		   return "";
+	   }
+	   String[] a = value.split("=");
+	   return a[1];
    }
    
    public static void initEngine(int width, int height, int scale, String title) {   
-	   Engine.WIDTH = width;
-	   Engine.HEIGHT = height;
-	   Engine.SCALE = scale;
+	   DikenEngine.WIDTH = width;
+	   DikenEngine.HEIGHT = height;
+	   DikenEngine.SCALE = scale;
 	   
 	   if(title == null) {
 		   title = "Untitled Game";
 	   }
 	   
-	   localEngine = new Engine();
+	   localEngine = new DikenEngine();
 	   frame = new JFrame(title);
 	   frame.add(localEngine);
 	   frame.pack();

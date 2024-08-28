@@ -5,7 +5,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
-import com.emirenesgames.engine.Engine;
+import com.emirenesgames.engine.DikenEngine;
 
 public class Sound {
 	private Clip clip;
@@ -14,7 +14,7 @@ public class Sound {
 		Sound snd = new Sound();
 		try {
 			snd.clip = AudioSystem.getClip();
-			AudioInputStream aInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(Engine.class.getResourceAsStream(path)));
+			AudioInputStream aInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(DikenEngine.class.getResourceAsStream(path)));
 			snd.clip.open(aInputStream);
 		} catch (Exception e) {
 			e.printStackTrace();

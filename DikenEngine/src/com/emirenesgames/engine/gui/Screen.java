@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class Screen {
    public ArrayList<Button> buttons = new ArrayList();
-   public Engine engine;
+   public DikenEngine engine;
 
    public void tick() {
       for(int i = 0; i < this.buttons.size(); ++i) {

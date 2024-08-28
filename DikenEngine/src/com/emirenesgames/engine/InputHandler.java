@@ -7,17 +7,21 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import com.emirenesgames.engine.gui.Text;
+
 public class InputHandler implements MouseListener, MouseMotionListener, KeyListener {
    private int xm;
    private int ym;
-   public boolean mb0;
-   public boolean mb1;
-   public boolean mb2;
+   public boolean mb0, mb0Clicked, mb0Released;
+   public boolean mb1, mb1Clicked, mb1Released;
+   public boolean mb2, mb2Clicked, mb2Released;
+   
+   private boolean oldMb0, oldMb1, oldMb2;
    public boolean onScreen;
    private Mouse input = new Mouse();
    private Canvas canvas;
    public boolean[] keysDown = new boolean[65536];
-   public String typed;
+   public String typed = "";
 
    public InputHandler(Canvas canvas) {
       this.canvas = canvas;
@@ -107,11 +111,28 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
    }
 
    public synchronized void keyTyped(KeyEvent ke) {
-      this.typed = this.typed + ke.getKeyChar();
+	  if(Text.chars.indexOf(ke.getKeyChar()) >= 0 && this.typed.length() < 64) {
+		  this.typed = this.typed + ke.getKeyChar();
+	  }
+      
    }
 
    public synchronized Mouse updateMouseStatus(int scale) {
       this.input.update(this.xm / scale, this.ym / scale);
+      
+      this.mb0Clicked = !this.oldMb0 && mb0;
+      this.mb1Clicked = !this.oldMb1 && mb1;
+      this.mb2Clicked = !this.oldMb2 && mb2;
+      
+      this.mb0Released = this.oldMb0 && !mb0;
+      this.mb1Released = this.oldMb1 && !mb1;
+      this.mb2Released = this.oldMb2 && !mb2;
+      
+      this.oldMb0 = mb0;
+      this.oldMb1 = mb1;
+      this.oldMb2 = mb2;
+      
+      
       return this.input;
    }
 }
