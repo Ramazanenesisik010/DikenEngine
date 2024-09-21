@@ -14,7 +14,6 @@ public class Art {
    
    public Bitmap[][] cursors = loadAndCut("/cursors.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
    public Bitmap[][] button = loadAndCut("/button.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
-   public Bitmap[][] font = loadAndCut("/font.png", 6, 8 , Art.CLASS_RESOURCE_LOAD);
 
    public static void init() {
       i = new Art();
@@ -55,7 +54,7 @@ public class Art {
     	  if(loadId == Art.CLASS_RESOURCE_LOAD) {
     		  img = ImageIO.read(Art.class.getResource(name));
     	  } else if (loadId == Art.NORMAL_RESOURCE_LOAD) {
-    		  img = ImageIO.read(new File("."+name));
+    		  img = ImageIO.read(new File(name));
     	  } else {
     		  img = ImageIO.read(Art.class.getResource(name));
     	  }
@@ -69,6 +68,14 @@ public class Art {
       Bitmap result = new Bitmap(sw, sh);
       img.getRGB(0, 0, sw, sh, result.pixels, 0, sw);
       return result;
+   }
+   
+   public static Bitmap[][] loadAndCut(String name, int sw, int sh) {
+	   return loadAndCut(name, sw, sh, Art.CLASS_RESOURCE_LOAD);
+   }
+
+   public static Bitmap load(String name) {
+	   return load(name, Art.CLASS_RESOURCE_LOAD);
    }
 
    public static Bitmap[][] recolor(Bitmap[][] bitmaps, int a0, int b0, int a1, int b1) {

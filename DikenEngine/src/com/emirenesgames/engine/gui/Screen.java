@@ -12,7 +12,7 @@ public class Screen {
       for(int i = 0; i < this.buttons.size(); ++i) {
     	  Button btn = ((Button)this.buttons.get(i));
     	  btn.tick();
-          if (btn.intersects(new Rectangle(this.engine.mouse.x, this.engine.mouse.y, 2, 2)) && this.engine.input.mb0) {
+          if (btn.intersects(new Rectangle(this.engine.mouse.x, this.engine.mouse.y, 1, 1)) && this.engine.input.mb0) {
         	  this.engine.input.mb0 = false;
              this.actionListener(btn.id);
           }
@@ -24,6 +24,9 @@ public class Screen {
            Button btn = ((Button)this.buttons.get(i));
            btn.render(screen);
        }
+   }
+   
+   public void keyPressed(char var1) {
    }
 
    public void actionListener(int id) {

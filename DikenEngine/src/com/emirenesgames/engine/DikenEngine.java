@@ -1,5 +1,7 @@
 package com.emirenesgames.engine;
 
+import com.emirenesgames.engine.console.Command;
+import com.emirenesgames.engine.console.ConsolePrint;
 import com.emirenesgames.engine.gui.*;
 
 import java.awt.Canvas;
@@ -10,13 +12,10 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.*;
-import java.io.BufferedInputStream;
-import java.util.Arrays;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 
 public class DikenEngine extends Canvas implements Runnable {
@@ -37,9 +36,13 @@ public class DikenEngine extends Canvas implements Runnable {
    public InputHandler input;
    public Mouse mouse;
    
-   private Screen currentScreen;
+   public Screen currentScreen;
    public GameRunner gameRunner;
    private static boolean enableCursor = true;
+   
+   private static ByteArrayOutputStream consoleOS = new ByteArrayOutputStream();
+   
+   public UniFont defaultFont;
 
    public DikenEngine() {
       Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
@@ -59,7 +62,14 @@ public class DikenEngine extends Canvas implements Runnable {
 
    public void init() {
       Art.init();
-      Text.init();
+      UniFont.createFont("/fonts/default_font.json", "/fonts/default_font.png", "system_font");
+      Command.initCommands();
+      
+      PrintStream systemOut = System.out;
+	  System.setOut(new ConsolePrint(systemOut));
+	  
+	  defaultFont = UniFont.getFont("system_font");
+      
       this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
       this.screenBitmap = new Bitmap(this.screenImage);
       this.mouse = this.input.updateMouseStatus(SCALE);
@@ -121,6 +131,7 @@ public class DikenEngine extends Canvas implements Runnable {
             Thread.sleep(1L);
          } catch (InterruptedException var17) {
             var17.printStackTrace();
+            setCurrentScreen(new CrashScreen(var17));
          }
          
          this.swap();
@@ -163,17 +174,23 @@ public class DikenEngine extends Canvas implements Runnable {
 
    private void render(Bitmap screen) {
 	  screen.clear(Color.black.getRGB());
-      if (this.currentScreen != null) {
-         this.currentScreen.render(screen);
-      } else {
-         if(gameRunner != null) {
-        	 gameRunner.render(screen);
-         }
-      }
+	  try {
+		  if (this.currentScreen != null) {
+			  this.currentScreen.render(screen);
+		  } else {
+		      if(gameRunner != null) {
+		         gameRunner.render(screen);
+		      }
+		  }
 
-      if (this.input.onScreen && this.enableCursor) {
-         screen.draw(Art.i.cursors[0][0], this.mouse.x - 1, this.mouse.y - 1);
-      }
+		  if (this.input.onScreen && enableCursor) {
+		     screen.draw(Art.i.cursors[0][0], this.mouse.x - 1, this.mouse.y - 1);
+		  }
+	  } catch (Exception e) {
+		  e.printStackTrace();
+		  setCurrentScreen(new CrashScreen(e));
+	  }
+      
 
    }
    
@@ -202,13 +219,19 @@ public class DikenEngine extends Canvas implements Runnable {
 
    private void tick() {
 	  tickDimension();
-      if (this.currentScreen != null) {
-         this.currentScreen.tick();
-      } else {
-    	  if(gameRunner != null) {
-         	 gameRunner.tick();
-          }
-      }
+      try {
+    	  if (this.currentScreen != null) {
+    	      this.currentScreen.tick();
+    	  } else {
+    	      if(gameRunner != null) {
+    	         gameRunner.tick();
+    	      }
+    	  }
+	  } catch (Exception e) {
+		  e.printStackTrace();
+		  setCurrentScreen(new CrashScreen(e));
+	  }
+      
    }
    
    public static DikenEngine getEngine() {
@@ -255,4 +278,18 @@ public class DikenEngine extends Canvas implements Runnable {
 	   
 	   localEngine.start();
    }
+   
+   public static ByteArrayOutputStream consoleOutputStream() {
+	   return consoleOS;
+   }
+   
+   public void setDefaultFont(UniFont uniFont) {
+	   this.defaultFont = uniFont;
+   }
+   
+   public static void main(String[] args) {
+	   initEngine(320, 240, 3, "Hello, World!");
+	   getEngine().setCurrentScreen(new ConsoleScreen());
+   }
+   
 }

@@ -8,6 +8,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import com.emirenesgames.engine.gui.Text;
+import com.emirenesgames.engine.gui.UniFont;
 
 public class InputHandler implements MouseListener, MouseMotionListener, KeyListener {
    private int xm;
@@ -85,7 +86,6 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
       if (me.getButton() == 1) {
          this.mb0 = false;
       }
-
       if (me.getButton() == 3) {
          this.mb1 = false;
       }
@@ -111,7 +111,8 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
    }
 
    public synchronized void keyTyped(KeyEvent ke) {
-	  if(Text.chars.indexOf(ke.getKeyChar()) >= 0 && this.typed.length() < 64) {
+	  DikenEngine.getEngine().currentScreen.keyPressed(ke.getKeyChar());
+	  if(DikenEngine.getEngine().defaultFont.charTypes.indexOf(ke.getKeyChar()) >= 0) {
 		  this.typed = this.typed + ke.getKeyChar();
 	  }
       

@@ -1,7 +1,5 @@
 package com.emirenesgames.engine.gui;
 
-import java.awt.Rectangle;
-
 import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 
@@ -21,11 +19,24 @@ public class Button extends Hitbox {
 	}
 	
 	public void render(Bitmap bitmap) {
-        for(int i = 0; i < width; i++) {
-			bitmap.draw(Art.i.button[0][1], renderX + i, renderY);
+		bitmap.fill(renderX, renderY, renderX + width, renderY + height, 0xff848484);
+		
+		for (int i = 0; i < width + 1; i++) {
+			bitmap.draw(Art.i.button[0][1], renderX + i, renderY + height - 12);
+			bitmap.draw(Art.i.button[2][1], renderX + i, renderY);
 		}
-        bitmap.draw(Art.i.button[0][0], renderX, renderY);
-        bitmap.draw(Art.i.button[0][2], renderX + width - 4, renderY);
+		
+		for (int i = 0; i < height + 1; i++) {
+			bitmap.draw(Art.i.button[1][0], renderX, renderY + i);
+			bitmap.draw(Art.i.button[1][1], renderX + width - 12, renderY + i);
+		}
+		
+		bitmap.draw(Art.i.button[0][0], renderX, renderY + (height - 12));
+		bitmap.draw(Art.i.button[0][2], renderX + width, renderY + (height - 12));
+		bitmap.draw(Art.i.button[2][0], renderX, renderY);
+		bitmap.draw(Art.i.button[1][2], renderX + width, renderY);
+		
+		bitmap.fill(x, y, x + width, y + height, 0xff00ff00);
         
         Text.renderCenter(text, bitmap, renderX + width / 2, renderY + ((height / 2) - 4));
 	}

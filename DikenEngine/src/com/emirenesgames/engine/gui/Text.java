@@ -1,54 +1,65 @@
 package com.emirenesgames.engine.gui;
 
-import com.emirenesgames.engine.Art;
+import java.awt.Color;
+
 import com.emirenesgames.engine.Bitmap;
+import com.emirenesgames.engine.DikenEngine;
+import com.emirenesgames.engine.tools.ChatAllowedCharacters;
 
 public class Text {
-	public static BitmapAABB[] fontColors = new BitmapAABB[Short.MAX_VALUE];
-	
-	public static void init() {
-		BitmapAABB aabb = new BitmapAABB();
-		aabb.btp = Art.i.font;
-		fontColors[0] = aabb;
-		createFont(Art.loadAndCut("/font.png", 6, 8, Art.CLASS_RESOURCE_LOAD), 0xffffffff, 0xff242424, 1);
+
+	public static void render(String text, Bitmap bitmap, int x, int y, int color, UniFont font) {
+		for (int i = 0; i < text.length(); i++) {
+			int ch = font.charTypes.indexOf(text.charAt(i));
+			if (ch < 0) continue;
+			if (ch > font.charBitmaps.length) continue;
+			
+			Bitmap btp = font.charBitmaps[ch];
+			
+			Color color1 = new Color(color);
+			
+			int red = color1.getRed();
+			int green = color1.getGreen();
+			int blue = color1.getBlue();
+			
+			red -= 222;
+			green -= 222;
+			blue -= 222;
+			
+			Color darkColor = new Color(red, green, blue);
+			
+			bitmap.blendDraw(btp, (x + i * btp.w) + 1, y + 1, darkColor.getRGB());
+			bitmap.blendDraw(btp, x + i * btp.w, y, color);
+		}
 	}
 	
-	public static final String chars = "" + //
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?\"'/\\<>()[]{}" + //
-			"abcdefghijklmnopqrstuvwxyz_               " + //
-			"0123456789+-=*:;ÖÅÄå                      " + //
-			"";
-
+	public static void render(String text, Bitmap bitmap, int x, int y, int color) {
+		render(text, bitmap, x, y, color, DikenEngine.getEngine().defaultFont);
+	}
+	
+	public static void render(String text, Bitmap bitmap, int x, int y, UniFont font) {
+		render(text, bitmap, x, y, 0xffffffff, font);
+	}
+	
 	public static void render(String text, Bitmap bitmap, int x, int y) {
-		for (int i = 0; i < text.length(); i++) {
-			int ch = chars.indexOf(text.charAt(i));
-			if (ch < 0) ch = 104;
-
-			int xx = ch % 42;
-			int yy = ch / 42;
-			bitmap.draw(fontColors[1].btp[xx][yy], (x + i * 6) + 1, y + 1);
-			bitmap.draw(fontColors[0].btp[xx][yy], x + i * 6, y);
-		}
+		render(text, bitmap, x, y, 0xffffffff, DikenEngine.getEngine().defaultFont);
 	}
 	
 	public static void renderCenter(String string, Bitmap bitmap, int x, int y) {
+		renderCenter(string, bitmap, x, y, 0xffffffff, DikenEngine.getEngine().defaultFont);
+	}
+	
+	public static void renderCenter(String string, Bitmap bitmap, int x, int y, int color) {
+		renderCenter(string, bitmap, x, y, color, DikenEngine.getEngine().defaultFont);
+	}
+	
+	public static void renderCenter(String string, Bitmap bitmap, int x, int y, UniFont font) {
+		renderCenter(string, bitmap, x, y, 0xffffffff, font);
+	}
+	
+	public static void renderCenter(String string, Bitmap bitmap, int x, int y, int color, UniFont font) {
 		int x1 = x - (string.length() * 6 / 2);
 		
-		render(string,bitmap,x1,y);
-	}
-	
-	public static void createFont(Bitmap[][] font, int oldColor, int newColor, int id) {
-		Bitmap[][] recolored = Art.recolor(font, oldColor, newColor);
-		if(fontColors[id] != null) {
-			return;
-		}
-		
-		BitmapAABB aabb = new BitmapAABB();
-		aabb.btp = recolored;
-		fontColors[id] = aabb;
-	}
-	
-	private static class BitmapAABB {
-		public Bitmap[][] btp;
+		render(string, bitmap,x1, y, color, font);
 	}
 }
