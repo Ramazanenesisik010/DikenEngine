@@ -1,9 +1,7 @@
 package com.emirenesgames.engine.console;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Locale;
 
 import com.emirenesgames.engine.DikenEngine;
 

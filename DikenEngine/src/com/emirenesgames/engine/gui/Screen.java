@@ -5,7 +5,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 public class Screen {
-   public ArrayList<Button> buttons = new ArrayList();
+   public ArrayList<Button> buttons = new ArrayList<Button>();
    public DikenEngine engine;
 
    public void tick() {

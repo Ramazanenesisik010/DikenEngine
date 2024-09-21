@@ -1,7 +1,6 @@
 package com.emirenesgames.engine;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;

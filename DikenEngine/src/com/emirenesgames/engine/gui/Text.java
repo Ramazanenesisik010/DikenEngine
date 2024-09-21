@@ -4,7 +4,6 @@ import java.awt.Color;
 
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
-import com.emirenesgames.engine.tools.ChatAllowedCharacters;
 
 public class Text {
 

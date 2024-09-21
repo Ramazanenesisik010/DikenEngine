@@ -13,7 +13,6 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.*;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 import javax.swing.JFrame;

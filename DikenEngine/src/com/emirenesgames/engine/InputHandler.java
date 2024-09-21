@@ -7,9 +7,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import com.emirenesgames.engine.gui.Text;
-import com.emirenesgames.engine.gui.UniFont;
-
 public class InputHandler implements MouseListener, MouseMotionListener, KeyListener {
    private int xm;
    private int ym;

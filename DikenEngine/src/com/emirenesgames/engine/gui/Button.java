@@ -4,6 +4,7 @@ import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 
 public class Button extends Hitbox {
+	private static final long serialVersionUID = 1L;
 	public String text = "";
 	public int id, renderX, renderY, xa, ya;
 	

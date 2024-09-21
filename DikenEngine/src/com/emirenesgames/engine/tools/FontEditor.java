@@ -1,12 +1,7 @@
 package com.emirenesgames.engine.tools;
 
 import java.awt.event.*;
-import java.awt.image.*;
-import java.io.*;
 import java.util.*;
-
-import javax.imageio.*;
-import javax.swing.*;
 
 import com.emirenesgames.engine.*;
 
@@ -92,12 +87,13 @@ public class FontEditor implements GameRunner {
         
 		bitmap_font = Art.load("C:/Users/Ramazanenescik04/git/DikenEngine/DikenEngine/res/button.png", Art.NORMAL_RESOURCE_LOAD);
 	}
-	
+	@SuppressWarnings("unused")
 	private static class FontChar {
 		public int x, y, w, h;
 		
 		private char fontChar;
 
+		
 		public int getX() {
 			return x;
 		}
