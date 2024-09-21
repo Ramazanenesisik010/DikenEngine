@@ -35,8 +35,6 @@ public class Button extends Hitbox {
 		bitmap.draw(Art.i.button[0][2], renderX + width, renderY + (height - 12));
 		bitmap.draw(Art.i.button[2][0], renderX, renderY);
 		bitmap.draw(Art.i.button[1][2], renderX + width, renderY);
-		
-		bitmap.fill(x, y, x + width, y + height, 0xff00ff00);
         
         Text.renderCenter(text, bitmap, renderX + width / 2, renderY + ((height / 2) - 4));
 	}
