@@ -257,7 +257,7 @@ public class DikenEngine extends Canvas implements Runnable {
 	   return a[1];
    }
    
-   public static void initEngine(int width, int height, int scale, String title) {   
+   public static DikenEngine initEngine(int width, int height, int scale, String title) {   
 	   DikenEngine.WIDTH = width;
 	   DikenEngine.HEIGHT = height;
 	   DikenEngine.SCALE = scale;
@@ -276,6 +276,8 @@ public class DikenEngine extends Canvas implements Runnable {
 	   frame.setVisible(true);
 	   
 	   localEngine.start();
+	   
+	   return localEngine;
    }
    
    public static ByteArrayOutputStream consoleOutputStream() {

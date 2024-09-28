@@ -108,7 +108,10 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
    }
 
    public synchronized void keyTyped(KeyEvent ke) {
-	  DikenEngine.getEngine().currentScreen.keyPressed(ke.getKeyChar());
+	  if(DikenEngine.getEngine().currentScreen != null) {
+		  DikenEngine.getEngine().currentScreen.keyPressed(ke.getKeyChar());
+	  }
+	  
 	  if(DikenEngine.getEngine().defaultFont.charTypes.indexOf(ke.getKeyChar()) >= 0) {
 		  this.typed = this.typed + ke.getKeyChar();
 	  }
