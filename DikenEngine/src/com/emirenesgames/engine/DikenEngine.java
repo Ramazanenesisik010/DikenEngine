@@ -1,7 +1,6 @@
 package com.emirenesgames.engine;
 
 import com.emirenesgames.engine.console.Command;
-import com.emirenesgames.engine.console.ConsolePrint;
 import com.emirenesgames.engine.gui.*;
 
 import java.awt.Canvas;
@@ -12,8 +11,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.*;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import javax.swing.JFrame;
 
@@ -39,8 +36,6 @@ public class DikenEngine extends Canvas implements Runnable {
    public GameRunner gameRunner;
    private static boolean enableCursor = true;
    
-   private static ByteArrayOutputStream consoleOS = new ByteArrayOutputStream();
-   
    public UniFont defaultFont;
 
    public DikenEngine() {
@@ -63,9 +58,6 @@ public class DikenEngine extends Canvas implements Runnable {
       Art.init();
       UniFont.createFont("/fonts/default_font.json", "/fonts/default_font.png", "system_font");
       Command.initCommands();
-      
-      PrintStream systemOut = System.out;
-	  System.setOut(new ConsolePrint(systemOut));
 	  
 	  defaultFont = UniFont.getFont("system_font");
       
@@ -278,10 +270,6 @@ public class DikenEngine extends Canvas implements Runnable {
 	   localEngine.start();
 	   
 	   return localEngine;
-   }
-   
-   public static ByteArrayOutputStream consoleOutputStream() {
-	   return consoleOS;
    }
    
    public void setDefaultFont(UniFont uniFont) {

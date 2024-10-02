@@ -8,7 +8,7 @@ public class Command {
 	
 	public static void initCommands() {
 		commands[0] = new ClearCommand();
-		commands[1] = new InfoCommand();
+		commands[1] = new FontCommand();
 	}
 	
 	public static Command findCommand(String cName) {
@@ -20,7 +20,7 @@ public class Command {
 			Command tmpCmd = commands[i];
 			
 			if(tmpCmd != null) {
-				if (tmpCmd.commandInfo.getString("name").contains(cName)) {
+				if (tmpCmd.commandInfo.getString("name").equals(cName)) {
 					cmd = tmpCmd;
 				}
 			}

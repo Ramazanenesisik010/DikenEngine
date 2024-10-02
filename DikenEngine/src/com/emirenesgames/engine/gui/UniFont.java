@@ -86,5 +86,15 @@ public class UniFont {
 		
 		return font;
 	}
+	
+	public static int size() {
+		return unifonts.size();
+	}
+
+	
+	public static UniFont getFont(int id) {
+		UniFont font = unifonts.get(id);
+		return font;
+	}
 
 }

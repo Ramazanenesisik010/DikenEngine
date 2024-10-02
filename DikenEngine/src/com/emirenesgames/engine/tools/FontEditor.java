@@ -11,7 +11,7 @@ public class FontEditor implements GameRunner {
 	
 	private Bitmap bitmap_font;
 	
-	private int x, y, xStart = 0, yStart = 0;
+	private int x, y, xStart = 0, yStart = 0, scale = 3;
 	private boolean select = false;
 	
 	private List<FontChar> fontCharList = new ArrayList<FontChar>();
@@ -56,10 +56,6 @@ public class FontEditor implements GameRunner {
         	
         }
         
-        if (select) {
-        	System.out.println("Selected");
-        }
-        
         if (engine.input.mb0 && select) {
         	engine.input.mb0 = false;
         	this.select = false;
@@ -85,7 +81,7 @@ public class FontEditor implements GameRunner {
         	
         }
         
-		bitmap_font = Art.load("C:/Users/Ramazanenescik04/git/DikenEngine/DikenEngine/res/button.png", Art.NORMAL_RESOURCE_LOAD);
+		bitmap_font = Art.load("C:/Users/Ramazanenescik04/git/DikenEngine/DikenEngine/res/fonts/default_font.png", Art.NORMAL_RESOURCE_LOAD);
 	}
 	@SuppressWarnings("unused")
 	private static class FontChar {

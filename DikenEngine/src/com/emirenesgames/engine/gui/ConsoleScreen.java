@@ -21,6 +21,8 @@ public class ConsoleScreen extends Screen {
 			String text = this.textField.getText();
 			Command cmd = Command.findCommand(text);
 			
+			Console.println(">" + text);
+			
 			if(cmd != null) {
 				cmd.runCommand(null);
 			} else {
@@ -38,7 +40,7 @@ public class ConsoleScreen extends Screen {
 	public void render(Bitmap screen) {
 		super.render(screen);
 		for(int i = 0; i < Console.outputString.size(); i++) {
-			Text.render(">" + Console.outputString.get(i), screen, 2, 2 + (i * 9));
+			Text.render(Console.outputString.get(i), screen, 2, 2 + (i * 9));
 			
 			if (i == ( 1 + ((DikenEngine.HEIGHT - 9 * 3) / 9))) {
 				Console.outputString.remove(0);
@@ -57,6 +59,12 @@ public class ConsoleScreen extends Screen {
 	public void openScreen() {
 		this.engine.input.typed = "";
 		this.textField = new TextField(2,DikenEngine.HEIGHT-20, DikenEngine.WIDTH - 5, 16);
+		
+		DikenEngine engine = DikenEngine.getEngine();
+		
+		if(DikenEngine.SCALE >= 3) {
+			Console.println("Warn: Bazı yazılar sığamaya bilir.");
+		}
 	}
 
 	public void closeScreen() {
