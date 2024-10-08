@@ -29,6 +29,40 @@ public class Bitmap {
       this.h = img.getHeight();
       this.pixels = ((DataBufferInt)img.getRaster().getDataBuffer()).getData();
    }
+   
+   public void drawLine(int x1, int y1, int x2, int y2, int color) {
+       int dx = Math.abs(x2 - x1);
+       int dy = Math.abs(y2 - y1);
+       
+       int sx = x1 < x2 ? 1 : -1;  // x yönünde adım
+       int sy = y1 < y2 ? 1 : -1;  // y yönünde adım
+       
+       int err = dx - dy;
+
+       while (true) {
+           // Pikseli çiz, x1 ve y1 geçerli noktayı temsil eder
+           if (x1 >= 0 && x1 < w && y1 >= 0 && y1 < h) {
+               pixels[y1 * w + x1] = color;  // Pikseli ayarla
+           }
+
+           // Hedef noktaya ulaşıldıysa döngüden çık
+           if (x1 == x2 && y1 == y2) break;
+
+           int e2 = 2 * err;
+
+           // x yönünde hareket et
+           if (e2 > -dy) {
+               err -= dy;
+               x1 += sx;
+           }
+
+           // y yönünde hareket et
+           if (e2 < dx) {
+               err += dx;
+               y1 += sy;
+           }
+       }
+   }
 
    public void draw(Bitmap b, int xp, int yp) {
       xp += this.xOffs;

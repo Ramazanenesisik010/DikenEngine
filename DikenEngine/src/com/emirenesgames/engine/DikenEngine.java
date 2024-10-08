@@ -278,7 +278,21 @@ public class DikenEngine extends Canvas implements Runnable {
    
    public static void main(String[] args) {
 	   initEngine(320, 240, 3, "Hello, World!");
-	   getEngine().setCurrentScreen(new ConsoleScreen());
+	   addGameRunner(new GameRunner() {
+
+		@Override
+		public void render(Bitmap bitmap) {
+			bitmap.drawLine(0, 0, 25, 10, 0xffffff00);
+		}
+
+		@Override
+		public void tick() {
+			// TODO Auto-generated method stub
+			
+		}
+		   
+	   });
+	   //getEngine().setCurrentScreen(new ConsoleScreen());
    }
    
 }
