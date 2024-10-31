@@ -48,8 +48,13 @@ public class UniFont {
 			font.charTypes = font.charTypes + obj1.getString("char");
 		    font.charBitmaps[i] = new Bitmap(obj1.getInt("width"), obj1.getInt("height"));
 		    
+		    if (obj1.getInt("x") < 0 || obj1.getInt("y") < 0) {
+    			continue;
+    		}
+		    
 		    for(int x = 0; x < obj1.getInt("width"); x++) {
 		    	for(int y = 0; y < obj1.getInt("height"); y++) {
+		    		
 		    		int color = bitmap.pixels[(x + obj1.getInt("x")) + (y + obj1.getInt("y")) * bitmap.w];
 		    		
 		    		font.charBitmaps[i].setPixel(x, y, color);
@@ -58,8 +63,6 @@ public class UniFont {
 		    
 		    
 		}
-		
-		font.charTypes += ' ';
 		
 		unifonts.add(font);
 	}
@@ -90,7 +93,17 @@ public class UniFont {
 	public static int size() {
 		return unifonts.size();
 	}
-
+	
+	public static Bitmap[] getBitmapChars(String text, UniFont font) {
+		List<Bitmap> list = new ArrayList<Bitmap>();
+		for (int i = 0; i < text.length(); i++) {
+			int ch = font.charTypes.indexOf(text.charAt(i));
+			if (ch < 0) continue;
+			if (ch > font.charBitmaps.length) continue;
+			list.add(font.charBitmaps[ch]);
+		}
+		return list.toArray(new Bitmap[] {});
+	}
 	
 	public static UniFont getFont(int id) {
 		UniFont font = unifonts.get(id);

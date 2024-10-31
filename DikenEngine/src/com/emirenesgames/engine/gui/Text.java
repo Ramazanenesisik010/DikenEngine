@@ -1,34 +1,18 @@
 package com.emirenesgames.engine.gui;
 
-import java.awt.Color;
-
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
 
 public class Text {
 
 	public static void render(String text, Bitmap bitmap, int x, int y, int color, UniFont font) {
-		for (int i = 0; i < text.length(); i++) {
-			int ch = font.charTypes.indexOf(text.charAt(i));
-			if (ch < 0) continue;
-			if (ch > font.charBitmaps.length) continue;
-			
-			Bitmap btp = font.charBitmaps[ch];
-			
-			Color color1 = new Color(color);
-			
-			int red = color1.getRed();
-			int green = color1.getGreen();
-			int blue = color1.getBlue();
-			
-			red -= 222;
-			green -= 222;
-			blue -= 222;
-			
-			Color darkColor = new Color(red, green, blue);
-			
-			bitmap.blendDraw(btp, (x + i * btp.w) + 1, y + 1, darkColor.getRGB());
-			bitmap.blendDraw(btp, x + i * btp.w, y, color);
+		Bitmap[] chars = UniFont.getBitmapChars(text, font);
+		int w = 0;
+		for (int i = 0; i < chars.length; i++) {
+			Bitmap btp = chars[i];
+			bitmap.blendDraw(btp, (x + w) + 1, y + 1, color & 0xff2a2a2a);
+			bitmap.blendDraw(btp, x + w, y, color);
+			w += ((btp.w) + 1);
 		}
 	}
 	

@@ -122,12 +122,10 @@ public class DikenEngine extends Canvas implements Runnable {
             Thread.sleep(1L);
          } catch (InterruptedException var17) {
             var17.printStackTrace();
-            setCurrentScreen(new CrashScreen(var17));
          }
          
-         this.swap();
+         swap();
       }
-
    }
 
    public void setCurrentScreen(Screen screen) {
@@ -192,20 +190,23 @@ public class DikenEngine extends Canvas implements Runnable {
    }
    
    public static void tickDimension() {
-	   int newWidth = DikenEngine.getEngine().getWidth();
-	   int newHeight = DikenEngine.getEngine().getHeight();
-	   
-	   Dimension d = new Dimension(newWidth, newHeight);
-	   
-	   DikenEngine.WIDTH = (int) (d.getSize().getWidth() / DikenEngine.SCALE);
-	   DikenEngine.HEIGHT = (int) (d.getSize().getHeight() / DikenEngine.SCALE);
-	   
-	   if(DikenEngine.getEngine().screenImage == null) return;
-	   
-	   if(DikenEngine.getEngine().screenImage.getWidth() != newWidth || DikenEngine.getEngine().screenImage.getHeight() != newHeight) {
-		   DikenEngine.getEngine().screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-		   DikenEngine.getEngine().screenBitmap = new Bitmap(DikenEngine.getEngine().screenImage);
+	   if(frame.isResizable()) {
+		   int newWidth = DikenEngine.getEngine().getWidth();
+		   int newHeight = DikenEngine.getEngine().getHeight();
+		   
+		   Dimension d = new Dimension(newWidth, newHeight);
+		   
+		   DikenEngine.WIDTH = (int) (d.getSize().getWidth() / DikenEngine.SCALE);
+		   DikenEngine.HEIGHT = (int) (d.getSize().getHeight() / DikenEngine.SCALE);
+		   
+		   if(DikenEngine.getEngine().screenImage == null) return;
+		   
+		   if(DikenEngine.getEngine().screenImage.getWidth() != newWidth || DikenEngine.getEngine().screenImage.getHeight() != newHeight) {
+			   DikenEngine.getEngine().screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
+			   DikenEngine.getEngine().screenBitmap = new Bitmap(DikenEngine.getEngine().screenImage);
+		   }
 	   }
+	   
    }
 
    private void tick() {
@@ -278,21 +279,7 @@ public class DikenEngine extends Canvas implements Runnable {
    
    public static void main(String[] args) {
 	   initEngine(320, 240, 3, "Hello, World!");
-	   addGameRunner(new GameRunner() {
-
-		@Override
-		public void render(Bitmap bitmap) {
-			bitmap.drawLine(0, 0, 25, 10, 0xffffff00);
-		}
-
-		@Override
-		public void tick() {
-			// TODO Auto-generated method stub
-			
-		}
-		   
-	   });
-	   //getEngine().setCurrentScreen(new ConsoleScreen());
+	   getEngine().setCurrentScreen(new ConsoleScreen());
    }
    
 }

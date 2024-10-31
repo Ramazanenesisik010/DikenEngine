@@ -31,6 +31,10 @@ public class Bitmap {
    }
    
    public void drawLine(int x1, int y1, int x2, int y2, int color) {
+	   x1 += this.xOffs;
+	   y1 += this.yOffs;
+	   x2 += this.xOffs;
+	   y2 += this.yOffs;
        int dx = Math.abs(x2 - x1);
        int dy = Math.abs(y2 - y1);
        
