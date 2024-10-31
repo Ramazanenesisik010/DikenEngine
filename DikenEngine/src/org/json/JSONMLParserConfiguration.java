@@ -6,7 +6,6 @@ Public Domain.
 /**
  * Configuration object for the XML to JSONML parser. The configuration is immutable.
  */
-@SuppressWarnings({""})
 public class JSONMLParserConfiguration extends ParserConfiguration {
 
     /**

@@ -11,7 +11,7 @@ public class FontEditor implements GameRunner {
 	
 	private Bitmap bitmap_font;
 	
-	private int x, y, xStart = 0, yStart = 0, scale = 3;
+	private int x, y, xStart = 0, yStart = 0;// scale = 3;
 	private boolean select = false;
 	
 	private List<FontChar> fontCharList = new ArrayList<FontChar>();

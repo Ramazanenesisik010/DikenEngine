@@ -60,8 +60,6 @@ public class ConsoleScreen extends Screen {
 		this.engine.input.typed = "";
 		this.textField = new TextField(2,DikenEngine.HEIGHT-20, DikenEngine.WIDTH - 5, 16);
 		
-		DikenEngine engine = DikenEngine.getEngine();
-		
 		if(DikenEngine.SCALE >= 3) {
 			Console.println("Warn: Bazı yazılar sığamaya bilir.");
 		}
