@@ -1,3 +1,5 @@
 # DikenEngine
 
-Game engine built in Java and without using LWJGL or LibGDX
+Javada 2D Oyun yapmak için tasarlanmış oyun motoru!
+
+Minimun Java Sürümü: 11
