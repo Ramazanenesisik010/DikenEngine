@@ -1,18 +1,16 @@
 package com.emirenesgames.engine;
 
 import com.emirenesgames.engine.console.Command;
+import com.emirenesgames.engine.console.Console;
 import com.emirenesgames.engine.gui.*;
 
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Toolkit;
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.*;
+import java.io.*;
 
-import javax.swing.JFrame;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class DikenEngine extends Canvas implements Runnable {
    private static final long serialVersionUID = 1L;
@@ -20,8 +18,10 @@ public class DikenEngine extends Canvas implements Runnable {
    public static int HEIGHT = 240;
    public static int SCALE = 3;
    
+   public static final String VERSION = "v0.5 Prerelease 2";
+   
    private static DikenEngine localEngine;
-   public static JFrame frame = new JFrame("Diken Engine");
+   public JFrame frame = new JFrame("Diken Engine");
    private static String[] staticArgs = null;
    
    private boolean keepRunning = true;
@@ -31,12 +31,16 @@ public class DikenEngine extends Canvas implements Runnable {
    
    public InputHandler input;
    public Mouse mouse;
+   public GameManager gManager;
    
    public Screen currentScreen;
-   public GameRunner gameRunner;
-   private static boolean enableCursor = true;
+   private boolean enableCursor = true;
+   private Bitmap cursorBitmap;
    
    public UniFont defaultFont;
+   private int fps;
+   
+   private boolean fullscreen = false;
 
    public DikenEngine() {
       Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
@@ -56,28 +60,56 @@ public class DikenEngine extends Canvas implements Runnable {
 
    public void init() {
       Art.init();
-      UniFont.createFont("/fonts/default_font.json", "/fonts/default_font.png", "system_font");
+      UniFont.createFont("default_font");
       Command.initCommands();
 	  
-	  defaultFont = UniFont.getFont("system_font");
+	  defaultFont = UniFont.getFont("default_font");
       
       this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
       this.screenBitmap = new Bitmap(this.screenImage);
       this.mouse = this.input.updateMouseStatus(SCALE);
+      setCursorBitmap(Art.i.cursors[0][0]);
+      gManager.openMainMenu();
       this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));
       this.requestFocus();
+      
+      Console.println("DikenEngine [" + DikenEngine.VERSION + "]");
+      Console.println("Java: " + getJavaVersion());
+      
+      if(getJavaVersion() < 9) {
+    	  Console.println("Java 8 ve altı çalıştırılması önerilmez.");
+      }
+      
+   }
+   
+   private static int getJavaVersion() {
+	    String version = System.getProperty("java.version");
+	    if(version.startsWith("1.")) {
+	        version = version.substring(2, 3);
+	    } else {
+	        int dot = version.indexOf(".");
+	        if(dot != -1) { version = version.substring(0, dot); }
+	    } return Integer.parseInt(version);
    }
    
    public static String generatePath() {
 	   return "game/";
    }
    
-   public static boolean getEnableCursor() {
+   public boolean getEnableCursor() {
 	   return enableCursor;
    }
    
-   public static void setEnableCursor(boolean value) {
+   public void setEnableCursor(boolean value) {
 	   enableCursor = value;
+   }
+   
+   public Bitmap getCursorBitmap() {
+	   return cursorBitmap;
+   }
+   
+   public void setCursorBitmap(Bitmap bitmap) {
+	   cursorBitmap = bitmap;
    }
 
    public void run() {
@@ -114,6 +146,7 @@ public class DikenEngine extends Canvas implements Runnable {
          ++frames;
          if (System.currentTimeMillis() > lastFrameTime + 1000L) {
             System.out.println(frames + " fps");
+            fps = frames;
             lastFrameTime += 1000L;
             frames = 0;
          }
@@ -162,66 +195,101 @@ public class DikenEngine extends Canvas implements Runnable {
    }
 
    private void render(Bitmap screen) {
-	  screen.clear(Color.black.getRGB());
 	  try {
 		  if (this.currentScreen != null) {
 			  this.currentScreen.render(screen);
 		  } else {
-		      if(gameRunner != null) {
-		         gameRunner.render(screen);
-		      }
+		  }
+		  
+		  if(Boolean.parseBoolean(gManager.config.getProperty("show_fps"))) {
+			  Text.render("FPS: " + this.getFPS(), screen, 0, 0);
 		  }
 
 		  if (this.input.onScreen && enableCursor) {
-		     screen.draw(Art.i.cursors[0][0], this.mouse.x - 1, this.mouse.y - 1);
+		     screen.draw(cursorBitmap, this.mouse.x - 1, this.mouse.y - 1);
 		  }
+		  
+		  
 	  } catch (Exception e) {
 		  e.printStackTrace();
-		  setCurrentScreen(new CrashScreen(e));
+		  crashScreen(e);
 	  }
       
 
    }
    
-   public static void addGameRunner(GameRunner gameRunner) {
-	   if(localEngine != null) {
-		   localEngine.gameRunner = gameRunner;
-	   }   
+   public void crashScreen(Exception e) {
+	   stop();
+	   
+	   StringWriter sWriter = new StringWriter();
+	   e.printStackTrace(new PrintWriter(sWriter));
+	   JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+	   frame.dispose();
+	   
+	   System.exit(0);
    }
    
-   public static void tickDimension() {
-	   if(frame.isResizable()) {
-		   int newWidth = DikenEngine.getEngine().getWidth();
-		   int newHeight = DikenEngine.getEngine().getHeight();
+   public void tickDimension() {
+	   int newWidth = getWidth();
+	   int newHeight = getHeight();
 		   
-		   Dimension d = new Dimension(newWidth, newHeight);
+	   Dimension d = new Dimension(newWidth / DikenEngine.SCALE, newHeight / DikenEngine.SCALE);
 		   
-		   DikenEngine.WIDTH = (int) (d.getSize().getWidth() / DikenEngine.SCALE);
-		   DikenEngine.HEIGHT = (int) (d.getSize().getHeight() / DikenEngine.SCALE);
+	   DikenEngine.WIDTH = (int) (d.getSize().getWidth());
+	   DikenEngine.HEIGHT = (int) (d.getSize().getHeight());
 		   
-		   if(DikenEngine.getEngine().screenImage == null) return;
+	   if(screenImage == null) return;
 		   
-		   if(DikenEngine.getEngine().screenImage.getWidth() != newWidth || DikenEngine.getEngine().screenImage.getHeight() != newHeight) {
-			   DikenEngine.getEngine().screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-			   DikenEngine.getEngine().screenBitmap = new Bitmap(DikenEngine.getEngine().screenImage);
+	   if(screenImage.getWidth() != d.getSize().getWidth() || screenImage.getHeight() != d.getSize().getHeight()) {
+		   screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
+		   screenBitmap = new Bitmap(screenImage);
+			   
+		   if(currentScreen != null) {
+			  setCurrentScreen(DikenEngine.getEngine().currentScreen);
 		   }
 	   }
+	   
 	   
    }
 
    private void tick() {
-	  tickDimension();
       try {
+    	  tickDimension();
+    	  if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))) {
+    		  this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
+    		  
+    		  if(this.fullscreen) {
+    			  frame.dispose();
+    			  
+    			  frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    			  if (!frame.isUndecorated()) {
+    				  frame.setUndecorated(true);
+    			  }
+    			  frame.setVisible(true);
+    		  } else {
+    			  frame.dispose();
+    			  
+    			  frame.setExtendedState(JFrame.NORMAL);
+    			  if (frame.isUndecorated()) {
+    				  frame.setUndecorated(false);
+    			  }
+    			  frame.setVisible(true);
+    		  }
+    	  }
+    	  if(frame.getTitle() !=  gManager.config.getProperty("title")) {
+    		  frame.setTitle( gManager.config.getProperty("title"));
+    	  }
+    	  if(input.keysDown[KeyEvent.VK_F11]) {
+    		  input.keysDown[KeyEvent.VK_F11] = false;
+    		  gManager.config.setProperty("fullscreen", "" + (!Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))));
+    	  }
     	  if (this.currentScreen != null) {
     	      this.currentScreen.tick();
     	  } else {
-    	      if(gameRunner != null) {
-    	         gameRunner.tick();
-    	      }
     	  }
 	  } catch (Exception e) {
 		  e.printStackTrace();
-		  setCurrentScreen(new CrashScreen(e));
+		  crashScreen(e);
 	  }
       
    }
@@ -260,13 +328,19 @@ public class DikenEngine extends Canvas implements Runnable {
 	   }
 	   
 	   localEngine = new DikenEngine();
-	   frame = new JFrame(title);
-	   frame.add(localEngine);
-	   frame.pack();
-	   frame.setResizable(false);
-	   frame.setLocationRelativeTo((Component)null);
-	   frame.setDefaultCloseOperation(3);
-	   frame.setVisible(true);
+	   localEngine.gManager = new GameManager();
+	   localEngine.gManager.config.setProperty("title", title);
+	   localEngine.frame = new JFrame(title);
+	   try {
+		   localEngine.frame.setIconImage(ImageIO.read(DikenEngine.class.getResourceAsStream("/icon.png")));
+	   } catch (IOException | IllegalArgumentException e) {
+	   }
+	   localEngine.frame.add(localEngine);
+	   localEngine.frame.pack();
+	   localEngine.frame.setResizable(false);
+	   localEngine.frame.setLocationRelativeTo((Component)null);
+	   localEngine.frame.setDefaultCloseOperation(3);
+	   localEngine.frame.setVisible(true);
 	   
 	   localEngine.start();
 	   
@@ -278,8 +352,11 @@ public class DikenEngine extends Canvas implements Runnable {
    }
    
    public static void main(String[] args) {
-	   initEngine(320, 240, 3, "Hello, World!");
-	   getEngine().setCurrentScreen(new ConsoleScreen());
+	   DikenEngine engine = initEngine(320 * 2, 240 * 2, 2, "DikenEngine " + DikenEngine.VERSION);
+	   engine.frame.setResizable(true);
    }
    
+   public int getFPS() {   
+	   return fps;
+   }
 }

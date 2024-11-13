@@ -3,7 +3,7 @@ package com.emirenesgames.engine.console;
 public class ClearCommand extends Command {
 
 	public ClearCommand() {
-		super("clear");
+		super("clear", "Ekranı Temizler.");
 	}
 
 	public void runCommand(String[] args) {

@@ -19,29 +19,25 @@ public class Button extends Hitbox {
 		this.id = id;	
 	}
 	
-	public void render(Bitmap bitmap) {
-		bitmap.fill(renderX, renderY, renderX + width, renderY + height, 0xff848484);
+	public Bitmap render() {
+		Bitmap bitmap = new Bitmap(width + 4, height + 4);
+		bitmap.fill(0, 0, 0 + width, 0 + height, 0xff484848);
 		
-		for (int i = 0; i < width + 1; i++) {
-			bitmap.draw(Art.i.button[0][1], renderX + i, renderY + height - 12);
-			bitmap.draw(Art.i.button[2][1], renderX + i, renderY);
+		for (int i = 0; i < width; i++) {
+			bitmap.draw(Art.i.button[0][1], i, height - 12);
+			bitmap.draw(Art.i.button[2][1], i, 0);
 		}
 		
-		for (int i = 0; i < height + 1; i++) {
-			bitmap.draw(Art.i.button[1][0], renderX, renderY + i);
-			bitmap.draw(Art.i.button[1][1], renderX + width - 12, renderY + i);
+		for (int i = 0; i < height; i++) {
+			bitmap.draw(Art.i.button[1][0], 0, 0 + i);
+			bitmap.draw(Art.i.button[1][1], 0 + width - 12, 0 + i);
 		}
 		
-		bitmap.draw(Art.i.button[0][0], renderX, renderY + (height - 12));
-		bitmap.draw(Art.i.button[0][2], renderX + width, renderY + (height - 12));
-		bitmap.draw(Art.i.button[2][0], renderX, renderY);
-		bitmap.draw(Art.i.button[1][2], renderX + width, renderY);
+		bitmap.draw(Art.i.button[0][0], 0, 0 + (height - 12));
+		bitmap.draw(Art.i.button[0][2], 0 + width, 0 + (height - 12));
+		bitmap.draw(Art.i.button[2][0], 0, 0);
+		bitmap.draw(Art.i.button[1][2], 0 + width, 0);
         
-        Text.renderCenter(text, bitmap, renderX + width / 2, renderY + ((height / 2) - 4));
-	}
-	
-	public void tick() {
-		this.renderX = xa;
-		this.renderY = ya;
+        return bitmap;
 	}
 }

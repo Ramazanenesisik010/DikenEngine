@@ -19,12 +19,12 @@ public class UniFont {
 	
 	public String name;
 	
-	public static void createFont(String fontJsonLocation, String fontAtlasLocation, String fontName) {
+	public static void createFont(String fontName) {
 		UniFont font = new UniFont();
 		
-		Bitmap bitmap = Art.load(fontAtlasLocation, Art.CLASS_RESOURCE_LOAD);
+		Bitmap bitmap = Art.load("/fonts/" + fontName + "/font_bitmap.png", Art.CLASS_RESOURCE_LOAD);
 		font.name = fontName;
-		BufferedReader reader = new BufferedReader(new InputStreamReader(UniFont.class.getResourceAsStream(fontJsonLocation)));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(UniFont.class.getResourceAsStream("/fonts/" + fontName + "/font_data.json")));
 		String data = "",data2 = "";
 		
 		try {
@@ -64,12 +64,15 @@ public class UniFont {
 		    
 		}
 		
+		System.out.println("Loaded Font: " + fontName);
+		System.out.println("Font Types: " + font.charTypes);
+		
 		unifonts.add(font);
 	}
 	
 	public static boolean removeFont(String s) {
         UniFont font = getFont(s);
-        if(Objects.isNull(font)) {
+        if(font == null) {
         	return false;
         }
 		unifonts.remove(font);
@@ -82,7 +85,7 @@ public class UniFont {
 		for (int i = 0; i < unifonts.size(); i++) {
 			UniFont tmpFont = unifonts.get(i);
 			
-			if(tmpFont.name.contains(name)) {
+			if(tmpFont.name.equals(name)) {
 				font = tmpFont;
 			}
 		}
@@ -103,6 +106,13 @@ public class UniFont {
 			list.add(font.charBitmaps[ch]);
 		}
 		return list.toArray(new Bitmap[] {});
+	}
+	
+	public static Bitmap getBitmapChar(char chara, UniFont font) {
+		int ch = font.charTypes.indexOf(chara);
+		if (ch < 0) return new Bitmap(6, 8);
+		if (ch > font.charBitmaps.length) return new Bitmap(6, 8);
+		return font.charBitmaps[ch];
 	}
 	
 	public static UniFont getFont(int id) {

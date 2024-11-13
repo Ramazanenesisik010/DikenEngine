@@ -10,9 +10,12 @@ public class Art {
    
    public static final int CLASS_RESOURCE_LOAD = 0;
    public static final int NORMAL_RESOURCE_LOAD = 1;
-   
+  
    public Bitmap[][] cursors = loadAndCut("/cursors.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
    public Bitmap[][] button = loadAndCut("/button.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
+   public Bitmap[][] bgd_tiles = loadAndCut("/background_tiles.png", 32, 32, Art.CLASS_RESOURCE_LOAD);
+   public Bitmap[][] check_box = loadAndCut("/check_box.png", 20, 20, Art.CLASS_RESOURCE_LOAD);
+   public Bitmap icon_x16 = load("/icon-x16.png");
 
    public static void init() {
       i = new Art();
