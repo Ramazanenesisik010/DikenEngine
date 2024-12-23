@@ -20,8 +20,6 @@ public class SoundTest extends Screen {
 	
 	private Screen parent;
 	
-	private TextField pathField;
-	
 	private File file;
 	
 	private int soundFileType = -1; // wav sound file
@@ -31,6 +29,8 @@ public class SoundTest extends Screen {
 
 	private String currentFrame = "--:--";
 	private String endPosition = "--:--";
+	
+	private TextField tField;
 
 	public SoundTest(Screen screen) {
 		this.parent = screen;
@@ -75,8 +75,7 @@ public class SoundTest extends Screen {
 				
 			}
 		}
-		
-		pathField.tick();
+
 	}
 
 
@@ -85,8 +84,6 @@ public class SoundTest extends Screen {
 		super.render(screen);
 		
 		Text.render("Konum: ", screen, 2, 2);
-		
-		pathField.render(screen);
 		
 		String name = "Null", size = "0", isFile = "§ff0000Yanlış", isSoundFile = "§ff0000Yanlış";
 		
@@ -110,8 +107,7 @@ public class SoundTest extends Screen {
 
 
 	public void keyPressed(char var1) {
-		pathField.keyPressed(var1);
-		file = new File(pathField.getText());
+		file = new File(tField.getText());
 		
 		if(file.exists() && file.isFile()) {
 			if (file.getName().endsWith("ogg")) {
@@ -153,8 +149,14 @@ public class SoundTest extends Screen {
 		if(id == 3) {
 			this.playing = false;
 			if (file.getName().endsWith("ogg")) {
+				if(this.soundPlayer != null) {
+					
+				}
 			} else if(file.getName().endsWith("wav")) {
-				((WavSound)soundPlayer).stopSound();
+				if(this.soundPlayer != null) {
+					((WavSound)soundPlayer).stopSound();
+				}
+				
 			}
 		}
 	}
@@ -178,8 +180,8 @@ public class SoundTest extends Screen {
 		});
 		int response = fileChooser.showOpenDialog(null); //select file to open
 		if(response == JFileChooser.APPROVE_OPTION) {
-			pathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
-			file = new File(pathField.getText());
+			tField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+			file = new File(tField.getText());
 			
 			if(file.exists() && file.isFile()) {
 				if (file.getName().endsWith("ogg")) {
@@ -198,9 +200,15 @@ public class SoundTest extends Screen {
 
 	public void openScreen() {
 		this.setBackground(new DownBackground(Art.i.bgd_tiles[5][0]));
-		pathField = new TextField(2, 2 + 18, ((DikenEngine.WIDTH) - 6) - 20, 18, this.engine);
+		this.buttons.clear();
+		this.buttons.add(new Button("Aç", (DikenEngine.WIDTH) - (6 + 16), 2 + 18, 16, 16, 0));
+		this.buttons.add(new Button("Oynat", 2, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 2));
+		this.buttons.add(new Button("Durdur", 2 + 106, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 3));
+		this.buttons.add(new Button("Geri Dön", 2, DikenEngine.HEIGHT - 16 - 6, 100, 16, 1));
+		tField = new TextField(2, 2 + 18, ((DikenEngine.WIDTH) - 6) - 20, 18, this.engine);
+		this.buttons.add(tField);
 		if(file != null) {
-			pathField.setText(file.getAbsolutePath());
+			tField.setText(file.getAbsolutePath());
 			
 			if(file.exists() && file.isFile()) {
 				if (file.getName().endsWith("ogg")) {
@@ -214,16 +222,24 @@ public class SoundTest extends Screen {
 				this.soundFileType = -1;
 			}
 		}
-		this.buttons.clear();
-		this.buttons.add(new Button("Aç", (DikenEngine.WIDTH) - (6 + 16), 2 + 18, 16, 16, 0));
-		this.buttons.add(new Button("Oynat", 2, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 2));
-		this.buttons.add(new Button("Durdur", 2 + 106, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 3));
-		this.buttons.add(new Button("Geri Dön", 2, DikenEngine.HEIGHT - 16 - 6, 100, 16, 1));
+	}
+	
+	public void closeScreen() {
+		if(this.soundPlayer != null) {
+			if(this.soundFileType == 0) {
+				((WavSound)soundPlayer).stopSound();
+			} else if (this.soundFileType == 1) {
+				
+			} else {
+				
+			}
+		}
 	}
 
 	public static void main(String[] args) {
 		DikenEngine engine =  DikenEngine.initEngine(640, 480 / 2, 2, "SoundTest v0.1 - By Ramazanenescik04");
-		engine.frame.setResizable(true);
+		engine.startEngine();
+		engine.engineWindow.setResizable(true);
 		engine.gManager.setMainMenu(new SoundTest(null));
 		engine.gManager.openMainMenu();
 	}

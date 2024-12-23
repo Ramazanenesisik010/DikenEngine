@@ -9,6 +9,10 @@ public class Hitbox extends Rectangle {
 	public Hitbox(int x, int y, int width, int height) {
 		super(x, y, width, height);
 	}
+	
+	public Hitbox(int x, int y) {
+		super(x, y, 1, 1);
+	}
 
 	public boolean intersects(Rectangle r) {
 	    return this.active ? super.intersects(r) : false;

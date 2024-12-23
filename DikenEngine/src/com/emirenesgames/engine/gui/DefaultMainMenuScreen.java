@@ -28,8 +28,7 @@ public class DefaultMainMenuScreen extends Screen {
 			engine.setCurrentScreen(new ConsoleScreen(this));
 		}
 		if(id == 2) {
-			engine.stop();
-			engine.frame.dispose();
+			engine.engineWindow.dispose();
 			System.exit(0);
 		}
         if(id == 4) {
@@ -44,6 +43,9 @@ public class DefaultMainMenuScreen extends Screen {
 			} catch (URISyntaxException e) {
 			}
 		}
+		if(id == 5) {
+			engine.setCurrentScreen(new DES(this));
+		}
 	}
 
 	public void openScreen() {
@@ -52,9 +54,9 @@ public class DefaultMainMenuScreen extends Screen {
 		Button performaceButton = new Button("Performans Testi", 10, 100, 200, 15, 0);
 		performaceButton.active = false;
 		this.buttons.add(performaceButton);
-		this.buttons.add(new Button("Konsol", 10, 100 + (1 * 20), 200, 15, 1));
+		this.buttons.add(new Button("Ayarlar", 10, 100 + (2 * 20), 200, 15, 5));
 		this.buttons.add(new Button("Oyundan Çık!", 10, 100 + (3 * 20), 200, 15, 2));
-		this.buttons.add(new Button("Ses Testi", 10, 100 + (2 * 20), 200, 15, 4));
+		this.buttons.add(new Button("Ses Testi", 10, 100 + (1 * 20), 200, 15, 4));
 		this.buttons.add(new Button("Github", 10, DikenEngine.HEIGHT - (1 * 20), 200, 15, 3));
 	}
 }

@@ -4,24 +4,27 @@ import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
 
-public class CheckBox extends Button {
+public class CheckBox extends GuiObject {
 	private static final long serialVersionUID = 1L;
 	
 	private boolean checked;
+	public String text;
 
-	public CheckBox(String text, int x, int y, int width, int height, int id) {
-		super(text, x, y, width, height, id);
+	public CheckBox(String text, int x, int y, int width, int height) {
+		super(x, y, width, height);
+		this.text = text;
 	}
 	
-	public CheckBox(String text, int x, int y, int id) {
-		super(text, x, y, 20, 20, id);
+	public CheckBox(String text, int x, int y) {
+		super(x, y, 20, 20);
+		this.text = text;
 	}
 
 	public Bitmap render() {
 		Bitmap bitmap = new Bitmap((width + 2) + Text.stringBitmapWidth(text, DikenEngine.getEngine().defaultFont), height + 4);
-		bitmap.draw(super.render(), 0, 0);
+		bitmap.draw(new Button("", 0, 0, width, height, 0).render(), 0, 0);
 		if(checked) {
-			bitmap.draw(Art.i.check_box[0][0], 0, 0);
+			bitmap.draw(Art.i.check_box[1][0], 0, 0);
 		}
 		return bitmap;
 	}

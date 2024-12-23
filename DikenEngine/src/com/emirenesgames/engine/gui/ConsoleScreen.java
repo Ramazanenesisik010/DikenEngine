@@ -14,9 +14,8 @@ import com.emirenesgames.engine.console.Console;
 import com.emirenesgames.engine.gui.background.StaticBackground;
 
 public class ConsoleScreen extends Screen {
-	
-	private TextField textField;
 	private Screen parent;
+	private TextField tField;
 	
 	public ConsoleScreen(Screen parent) {
 		this.parent = parent;
@@ -24,10 +23,8 @@ public class ConsoleScreen extends Screen {
 
 	public void tick() {
 		super.tick();
-
-		textField.tick();
 		
-		if(engine.input.keysDown[KeyEvent.VK_ENTER] && this.textField.isFocused()) {
+		if(engine.input.keysDown[KeyEvent.VK_ENTER] && tField.isFocused()) {
 			engine.input.keysDown[KeyEvent.VK_ENTER] = false;
 			sendCommand();
 	    }
@@ -52,7 +49,6 @@ public class ConsoleScreen extends Screen {
 				Console.outputString.remove(0);
 			}
 		}
-		this.textField.render(screen);
 	}
 
 	public void actionListener(int id) {
@@ -65,7 +61,8 @@ public class ConsoleScreen extends Screen {
 	}
 	
 	private void sendCommand() {
-		String text = this.textField.getText();
+		String text = tField.getText();
+
 		String[] a = text.split(" ");
 		a[0] = a[0].toLowerCase(Locale.ROOT);
 		Command cmd;
@@ -90,7 +87,7 @@ public class ConsoleScreen extends Screen {
 				this.engine.crashScreen(e);
 			}
 		} else {
-			if(this.textField.getText().isEmpty()) {
+			if(tField.getText().isEmpty()) {
 				Console.println("");
 			} else {
 				Console.println("Bilinmeyen Komut: " + text + ", Lütfen \"help\" yazınız.");
@@ -98,30 +95,20 @@ public class ConsoleScreen extends Screen {
 			
 		}
 		Console.println("");
-		this.textField.setText("");
-	}
-	
-	public void keyPressed(char var1) {
-		this.textField.keyPressed(var1);
+		tField.setText("");
 	}
 
 	public void openScreen() {
 		this.setBackground(new StaticBackground(Art.i.bgd_tiles[4][0]));
 		this.buttons.clear();
+		tField = new TextField(2,DikenEngine.HEIGHT-20, (DikenEngine.WIDTH - 10) - (50 * 2), 16, this.engine);
 		this.buttons.add(new Button("Gönder", (DikenEngine.WIDTH - 5) - 50, DikenEngine.HEIGHT - 21, 50, 16, 0));
 		this.buttons.add(new Button("Geri Dön", (DikenEngine.WIDTH - 5) - (50 * 2), DikenEngine.HEIGHT - 21, 50, 16, 1));
+		this.buttons.add(tField);
 		this.engine.input.typed = "";
-		this.textField = new TextField(2,DikenEngine.HEIGHT-20, (DikenEngine.WIDTH - 10) - (50 * 2), 16, this.engine);
-		
-		if(DikenEngine.SCALE >= 3) {
-			Console.println("Uyarı: Bazı yazılar sığmayabilir.");
-		}
 	}
 
 	public void closeScreen() {
 		this.engine.input.typed = "";
 	}
-	
-	
-
 }

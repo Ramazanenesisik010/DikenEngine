@@ -3,7 +3,7 @@ package com.emirenesgames.engine;
 import java.awt.image.*;
 import java.util.*;
 
-public class Bitmap {
+public class Bitmap implements java.io.Serializable{
 	public final int[] pixels;
 	public final int w, h;
 	public int xOffs;
@@ -28,41 +28,97 @@ public class Bitmap {
 		pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 	}
 	
+	public BufferedImage toImage() {
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		img.setRGB(0, 0, w, h, pixels, 0, w);
+		return img;
+	}
+	
 	public Bitmap rotate(double angle) {
-        double radians = Math.toRadians(angle);
-        double cosA = Math.cos(radians);
-        double sinA = Math.sin(radians);
+	    double radians = Math.toRadians(angle);
+	    double cosA = Math.cos(radians);
+	    double sinA = Math.sin(radians);
 
-        // Yeni bitmap'in genişlik ve yüksekliğini hesapla
-        int newWidth = (int) Math.abs(w * cosA) + (int) Math.abs(h * sinA);
-        int newHeight = (int) Math.abs(w * sinA) + (int) Math.abs(h * cosA);
-        
-        Bitmap rotated = new Bitmap(newWidth, newHeight);
+	    // Yeni bitmap boyutlarını hesapla
+	    int newWidth = (int) Math.abs(w * cosA) + (int) Math.abs(h * sinA);
+	    int newHeight = (int) Math.abs(w * sinA) + (int) Math.abs(h * cosA);
+	    Bitmap rotated = new Bitmap(newWidth, newHeight);
 
-        int x0 = w / 2;       // Orijinal bitmap'in merkezi (x)
-        int y0 = h / 2;      // Orijinal bitmap'in merkezi (y)
-        int newX0 = newWidth / 2; // Yeni bitmap'in merkezi (x)
-        int newY0 = newHeight / 2; // Yeni bitmap'in merkezi (y)
+	    // Merkez koordinatları
+	    int x0 = w / 2;
+	    int y0 = h / 2;
+	    int newX0 = newWidth / 2;
+	    int newY0 = newHeight / 2;
 
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                // Mevcut piksel konumunu merkeze göre ayarla
-                int dx = x - x0;
-                int dy = y - y0;
+	    for (int y = 0; y < newHeight; y++) {
+	        for (int x = 0; x < newWidth; x++) {
+	            // Yeni bitmap'teki (x, y) pikseli, orijinal bitmap'teki koordinatları geri hesapla
+	            int dx = x - newX0;
+	            int dy = y - newY0;
 
-                // Yeni pozisyonu hesapla
-                int newX = (int) (dx * cosA - dy * sinA) + newX0;
-                int newY = (int) (dx * sinA + dy * cosA) + newY0;
+	            double oldX = dx * cosA + dy * sinA + x0;
+	            double oldY = -dx * sinA + dy * cosA + y0;
 
-                // Yeni pozisyon bitmap sınırları içindeyse, pikseli ata
-                if (newX >= 0 && newX < newWidth && newY >= 0 && newY < newHeight) {
-                    rotated.pixels[newY * newWidth + newX] = this.pixels[y * w + x];
-                }
-            }
-        }
+	            // Eğer orijinal bitmap sınırları içindeyse interpolasyonu uygula
+	            if (oldX >= 0 && oldX < w - 1 && oldY >= 0 && oldY < h - 1) {
+	                int xFloor = (int) Math.floor(oldX); // Sol piksel (tam sayı)
+	                int yFloor = (int) Math.floor(oldY); // Üst piksel (tam sayı)
+	                int xCeil = xFloor + 1;             // Sağ piksel
+	                int yCeil = yFloor + 1;             // Alt piksel
 
-        return rotated;
-    }
+	                // Piksel renklerini al (sınır kontrolü yap)
+	                int topLeft = pixels[yFloor * w + xFloor];
+	                int topRight = pixels[yFloor * w + (xCeil < w ? xCeil : xFloor)];
+	                int bottomLeft = pixels[(yCeil < h ? yCeil : yFloor) * w + xFloor];
+	                int bottomRight = pixels[(yCeil < h ? yCeil : yFloor) * w + (xCeil < w ? xCeil : xFloor)];
+
+	                // Kesirli kısımları al (ağırlıklar)
+	                double xWeight = oldX - xFloor;
+	                double yWeight = oldY - yFloor;
+
+	                // Renk bileşenlerini interpolasyonla hesapla
+	                int interpolatedColor = bilinearInterpolation(topLeft, topRight, bottomLeft, bottomRight, xWeight, yWeight);
+
+	                // Rotated bitmap'e yeni renk ata
+	                rotated.pixels[y * newWidth + x] = interpolatedColor;
+	            } else {
+	                // Eğer orijinal bitmap'in dışına düşüyorsa siyah renk ata
+	                rotated.pixels[y * newWidth + x] = 0; // Siyah (0x00000000)
+	            }
+	        }
+	    }
+
+	    return rotated;
+	}
+
+	// Bilinear interpolation metodu
+	private int bilinearInterpolation(int topLeft, int topRight, int bottomLeft, int bottomRight, double xWeight, double yWeight) {
+	    // Renk bileşenlerini parçala (ARGB formatında)
+	    int aTL = (topLeft >> 24) & 0xFF, rTL = (topLeft >> 16) & 0xFF, gTL = (topLeft >> 8) & 0xFF, bTL = topLeft & 0xFF;
+	    int aTR = (topRight >> 24) & 0xFF, rTR = (topRight >> 16) & 0xFF, gTR = (topRight >> 8) & 0xFF, bTR = topRight & 0xFF;
+	    int aBL = (bottomLeft >> 24) & 0xFF, rBL = (bottomLeft >> 16) & 0xFF, gBL = (bottomLeft >> 8) & 0xFF, bBL = bottomLeft & 0xFF;
+	    int aBR = (bottomRight >> 24) & 0xFF, rBR = (bottomRight >> 16) & 0xFF, gBR = (bottomRight >> 8) & 0xFF, bBR = bottomRight & 0xFF;
+
+	    // Üst ve alt interpolasyonu yap
+	    double aTop = aTL + xWeight * (aTR - aTL);
+	    double rTop = rTL + xWeight * (rTR - rTL);
+	    double gTop = gTL + xWeight * (gTR - gTL);
+	    double bTop = bTL + xWeight * (bTR - bTL);
+
+	    double aBottom = aBL + xWeight * (aBR - aBL);
+	    double rBottom = rBL + xWeight * (rBR - rBL);
+	    double gBottom = gBL + xWeight * (gBR - gBL);
+	    double bBottom = bBL + xWeight * (bBR - bBL);
+
+	    // Üst ve alt sonuçlarını birleştir
+	    int a = (int) (aTop + yWeight * (aBottom - aTop));
+	    int r = (int) (rTop + yWeight * (rBottom - rTop));
+	    int g = (int) (gTop + yWeight * (gBottom - gTop));
+	    int b = (int) (bTop + yWeight * (bBottom - bTop));
+
+	    // Son rengi birleştir
+	    return (a << 24) | (r << 16) | (g << 8) | b;
+	}
 
 	public void drawLine(int x1, int y1, int x2, int y2, int color) {
 		x1 += this.xOffs;

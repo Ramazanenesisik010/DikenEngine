@@ -1,6 +1,5 @@
 package com.emirenesgames.engine.gui;
 
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -12,10 +11,10 @@ import java.io.IOException;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
 
-public class TextField {
-	
-	private Hitbox hitbox;
+public class TextField extends GuiObject{
+	private static final long serialVersionUID = 1L;
 	private boolean isFocused = false;
+	public boolean isNumberField = false;
 	
 	private String text = "";
 	private DikenEngine engine;
@@ -23,26 +22,16 @@ public class TextField {
 	private int counter;
 	
 	public TextField(int x, int y, int width, int height, DikenEngine engine) {
-		this.hitbox = new Hitbox(x, y, width, height);
+		super(x, y, width, height);
 		this.engine = engine;
 	}
 	
-	public void tick() {
-		
-		if(this.hitbox.intersects(new Rectangle(this.engine.mouse.x, this.engine.mouse.y, 2, 2))){
-			if (!isFocused && this.engine.input.mb0) {
-			    this.engine.input.mb0 = false;
-			    this.isFocused = true;
-		    } else if (isFocused && this.engine.input.mb0){
-		    	this.engine.input.mb0 = false;
-		    	this.isFocused = false;
-		    }
-		
-		} else if (this.engine.input.mb0){
-			this.engine.input.mb0 = false;
-			this.isFocused = false;
-		}
-		
+	public TextField(String text, int x, int y, int width, int height, DikenEngine engine) {
+		this(x, y, width, height, engine);
+		this.text = text;
+	}
+	
+	public void tick() {	
 		if(isFocused) {
 			if(this.engine.input.keysDown[KeyEvent.VK_CONTROL] && this.engine.input.keysDown[KeyEvent.VK_V]) {
 				this.engine.input.keysDown[KeyEvent.VK_V] = false;
@@ -71,6 +60,10 @@ public class TextField {
 				this.setText("");
 			}
 		}
+		
+		if(!intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && this.engine.input.mb0) {
+			this.isFocused = false;
+		}
 		++this.counter;
 	}
 	
@@ -81,22 +74,31 @@ public class TextField {
 				this.engine.input.keysDown[KeyEvent.VK_BACK_SPACE] = false;
 				text = text.substring(0, text.length() - 1);
 			} else {
-				if((defaultFont.charTypes.indexOf(var1) >= 0) && !(Text.stringBitmapWidth(text + var1, defaultFont) > hitbox.width - Text.stringBitmapWidth("" + var1, defaultFont))) {
-					  this.text = this.text + var1;
+				if (isNumberField) {
+					if(("-0123456789".indexOf(var1) >= 0) && !(Text.stringBitmapWidth(text + var1, defaultFont) > width - Text.stringBitmapWidth("" + var1, defaultFont))) {
+						  this.text = this.text + var1;
+					}
+				} else {
+					if((defaultFont.charTypes.indexOf(var1) >= 0) && !(Text.stringBitmapWidth(text + var1, defaultFont) > width - Text.stringBitmapWidth("" + var1, defaultFont))) {
+						  this.text = this.text + var1;
+					}
 				}
+				
 			}
 		}
 	}
 	
-	public void render(Bitmap bitmap) {
-		bitmap.box(this.hitbox.x, this.hitbox.y, this.hitbox.x + this.hitbox.width, this.hitbox.y + this.hitbox.height, isFocused() ? 0xffffff00 : 0xffffffff);
-		bitmap.fill(this.hitbox.x + 1, this.hitbox.y + 1, (this.hitbox.x + this.hitbox.width) - 1, (this.hitbox.y + this.hitbox.height) - 1, 0xff282828);
+	public Bitmap render() {
+		Bitmap bitmap = new Bitmap(this.width + 1, this.height + 1);
+		bitmap.box(0, 0, this.width, this.height, isFocused() ? 0xffffff00 : 0xffffffff);
+		bitmap.fill(1, 1, this.width - 1, this.height - 1, 0xff282828);
 		String text = this.text;
 		
 		if(isFocused) {
 			text = text + (this.counter / 6 % 12 > 6?"_":"");
 		}
-		Text.render(text, bitmap, this.hitbox.x + 2, this.hitbox.y + 2);
+		Text.render(text, bitmap, 2, 2);
+		return bitmap;
 	}
 
 	public boolean isFocused() {
@@ -114,5 +116,10 @@ public class TextField {
 	public void setText(String text) {
 		this.text = text;
 	}	
+	
+	public TextField setNumberic() {
+		this.isNumberField = true;
+		return this;
+	}
 
 }

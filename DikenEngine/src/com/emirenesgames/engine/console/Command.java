@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import com.emirenesgames.engine.DikenEngineException;
 
-public class Command {
+public abstract class Command {
 	
 	public static Command[] commands = new Command[Short.MAX_VALUE];
 	
@@ -17,6 +17,7 @@ public class Command {
 		commands[5] = new CrashCommand();
 		commands[6] = new ImageToTextCommand();
 		commands[7] = new GetCommand();
+		commands[8] = new DeleteCommand();
 	}
 	
 	public static Command findCommand(String cName) throws DikenEngineException {

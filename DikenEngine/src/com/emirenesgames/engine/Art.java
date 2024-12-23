@@ -17,6 +17,8 @@ public class Art {
    public Bitmap[][] check_box = loadAndCut("/check_box.png", 20, 20, Art.CLASS_RESOURCE_LOAD);
    public Bitmap icon_x16 = load("/icon-x16.png");
 
+   public Bitmap[][] se_button = loadAndCut("/screen_editor_buttons.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
+
    public static void init() {
       i = new Art();
    }
@@ -27,7 +29,7 @@ public class Art {
     	  if(loadId == Art.CLASS_RESOURCE_LOAD) {
     		  img = ImageIO.read(Art.class.getResource(name));
     	  } else if (loadId == Art.NORMAL_RESOURCE_LOAD) {
-    		  img = ImageIO.read(new File("."+name));
+    		  img = ImageIO.read(new File(name));
     	  } else {
     		  img = ImageIO.read(Art.class.getResource(name));
     	  }
@@ -114,5 +116,17 @@ public class Art {
       }
 
       return bitmaps;
+   }
+   
+   public static Bitmap toBitmap(BufferedImage img) {
+	   if (img == null) {
+		   return null;
+	   }
+	   
+	   int sw = img.getWidth();
+	   int sh = img.getHeight();
+	   Bitmap result = new Bitmap(sw, sh);
+	   img.getRGB(0, 0, sw, sh, result.pixels, 0, sw);
+	   return result;
    }
 }

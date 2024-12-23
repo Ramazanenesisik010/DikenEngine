@@ -1,88 +1,316 @@
 package com.emirenesgames.engine;
 
-import com.emirenesgames.engine.console.Command;
-import com.emirenesgames.engine.console.Console;
-import com.emirenesgames.engine.gui.*;
-
-import java.awt.*;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-public class DikenEngine extends Canvas implements Runnable {
-   private static final long serialVersionUID = 1L;
-   public static int WIDTH = 320;
-   public static int HEIGHT = 240;
-   public static int SCALE = 3;
-   
-   public static final String VERSION = "v0.5 Prerelease 2";
-   
-   private static DikenEngine localEngine;
-   public JFrame frame = new JFrame("Diken Engine");
-   private static String[] staticArgs = null;
-   
-   private boolean keepRunning = true;
-   
-   private BufferedImage screenImage;
-   public Bitmap screenBitmap;
-   
-   public InputHandler input;
-   public Mouse mouse;
-   public GameManager gManager;
-   
-   public Screen currentScreen;
-   private boolean enableCursor = true;
-   private Bitmap cursorBitmap;
-   
-   public UniFont defaultFont;
-   private int fps;
-   
-   private boolean fullscreen = false;
+import com.emirenesgames.engine.console.Command;
+import com.emirenesgames.engine.console.Console;
+import com.emirenesgames.engine.gui.ConsoleScreen;
+import com.emirenesgames.engine.gui.DefaultLoadingScreen;
+import com.emirenesgames.engine.gui.DefaultMainMenuScreen;
+import com.emirenesgames.engine.gui.Screen;
+import com.emirenesgames.engine.gui.Text;
+import com.emirenesgames.engine.gui.UniFont;
 
-   public DikenEngine() {
-      Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
-      this.setPreferredSize(size);
-      this.setMaximumSize(size);
-      this.setMinimumSize(size);
-      this.input = new InputHandler(this);
-   }
+/**
+ * DikenEngine, Oyun Motorunun Temel Ayarlarınon Değiştirildiği Sınıftır.
+ **/
+public class DikenEngine extends Canvas implements Runnable, WindowListener {
+	private static final long serialVersionUID = 1L;
+	
+	/** Oyun Motorun Genişliği **/
+	public static int WIDTH = 320;
+	
+	/** Oyun Motorun Yüksekliği **/
+	public static int HEIGHT = 240;
+	
+	/** Çizerken Boyutlandırma Yapar **/
+	public static int SCALE = 3;
+	
+	/** Motor Sürümü **/
+	public static final String VERSION = "v0.5";
+	
+	/** Motor Penceresi **/
+	public JFrame engineWindow;
 
-   public void start() {
-      (new Thread(this, "Game Thread")).start();
-   }
+	/** Şu Anki Ekran **/
+	public Screen currentScreen;
 
-   public void stop() {
-      this.keepRunning = false;
-   }
+	/** Oyun Motorun Varsayılan Yazı Tipi **/
+	public UniFont defaultFont;
+	
+	/** DikenEngine.getEngine() için **/
+	private static DikenEngine instance;
+	
+	/** Ekran Bitmap'i **/
+	private Bitmap screenBitmap;
 
-   public void init() {
-      Art.init();
-      UniFont.createFont("default_font");
-      Command.initCommands();
-	  
-	  defaultFont = UniFont.getFont("default_font");
-      
-      this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-      this.screenBitmap = new Bitmap(this.screenImage);
-      this.mouse = this.input.updateMouseStatus(SCALE);
-      setCursorBitmap(Art.i.cursors[0][0]);
-      gManager.openMainMenu();
-      this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));
-      this.requestFocus();
-      
-      Console.println("DikenEngine [" + DikenEngine.VERSION + "]");
-      Console.println("Java: " + getJavaVersion());
-      
-      if(getJavaVersion() < 9) {
-    	  Console.println("Java 8 ve altı çalıştırılması önerilmez.");
-      }
-      
-   }
-   
-   private static int getJavaVersion() {
+	/** Oyun Motoru Çalışma Durumu **/
+	private boolean running;
+
+	public int fps;
+
+	/** Klavye ve Fare Tıklamaları Algılar */
+	public InputHandler input;
+	
+	/** Fare Kordinatları Verir */
+	public Mouse mouse;
+
+	/** Oyun Yöneticisi **/
+	public GameManager gManager;
+
+	private Thread engineThread;
+
+	private boolean fullscreen = false;
+
+	/** Fare Resmi **/
+	public Bitmap cursorBitmap;
+
+	/** Resim **/
+	private BufferedImage screenImage;
+	private Init init;
+	
+	/** initEngine Kullanılmalıdır **/
+	private DikenEngine() {
+		Dimension size = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
+		
+		this.setMaximumSize(size);
+		this.setMinimumSize(new Dimension(100, 100));
+		this.setPreferredSize(size);
+		
+		this.input = new InputHandler(this);
+	}
+	
+	public void addInit(Init init) {
+		this.init = init;
+	}
+
+	public void run() {
+		 try {
+			 this.init();
+			 double nsPerFrame = 1.6666666666666666E7D;
+			 double unprocessedTime = 0.0D;
+			 double maxSkipFrames = 10.0D;
+			 long lastTime = System.nanoTime();
+			 long lastFrameTime = System.currentTimeMillis();
+			      
+			 int frames = 0; 
+
+			 while(this.running) {
+			    long now = System.nanoTime();
+			    double passedTime = (double)(now - lastTime) / nsPerFrame;
+			    lastTime = now;
+			    if (passedTime < -maxSkipFrames) {
+			       passedTime = -maxSkipFrames;
+			    }
+
+			    if (passedTime > maxSkipFrames) {
+			       passedTime = maxSkipFrames;
+			    }
+
+			    unprocessedTime += passedTime;
+
+			    while(unprocessedTime > 1.0D) {
+			       --unprocessedTime;
+			       this.mouse = this.input.updateMouseStatus(SCALE);
+			       this.tick();
+			    }
+
+			    this.render(this.screenBitmap);
+			    ++frames;
+			    if (System.currentTimeMillis() > lastFrameTime + 1000L) {
+			       fps = frames;
+			       lastFrameTime += 1000L;
+			       frames = 0;
+			    }
+
+			    try {
+			       Thread.sleep(1L);
+			    } catch (InterruptedException var17) {
+			       var17.printStackTrace();
+			    } 
+			       
+			    this.swap();
+			 }
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			 this.crashScreen(e);
+		 }
+	 }
+	
+	/** Çizme Method'u **/
+	private void render(Bitmap screen) {
+		try {
+			if(currentScreen != null) {
+				currentScreen.render(screen);
+			}
+			if(gManager.config.getProperty("show_fps").equals("true")) {
+				Text.render("FPS: " + fps, screen, 0, 0);
+			}
+			if(gManager.enabledCursor && cursorBitmap != null) {
+				screen.draw(cursorBitmap, mouse.x - 1, mouse.y - 1);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.crashScreen(e);
+		}	
+	}
+
+	/** 60 Kere Çakışır **/
+	private void tick() {
+		try {
+			tickDimension();
+			if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))) {
+				this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
+	   		  
+	   		    if(this.fullscreen) {
+	   		    	engineWindow.dispose();
+	   			  
+	   			    engineWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
+	   			    if (!engineWindow.isUndecorated()) {
+	   			    	engineWindow.setUndecorated(true);
+	   				}
+	   				engineWindow.setVisible(true);
+	   				requestFocus();
+	   				engineWindow.toFront();
+	   				engineWindow.requestFocus();
+	   		    } else {
+	   		    	engineWindow.dispose();
+	   			  
+	   				engineWindow.setExtendedState(JFrame.NORMAL);
+	   				if (engineWindow.isUndecorated()) {
+	   					engineWindow.setUndecorated(false);
+	   				}
+	   				engineWindow.setVisible(true);
+	   				requestFocus();
+	   				engineWindow.toFront();
+	   				engineWindow.requestFocus();
+	   		    }
+			}
+			if(engineWindow.getTitle() !=  gManager.config.getProperty("title")) {
+				engineWindow.setTitle( gManager.config.getProperty("title"));
+	   	  	}
+	   		if(input.keysDown[KeyEvent.VK_F11]) {
+	   			input.keysDown[KeyEvent.VK_F11] = false;
+	   		  	gManager.config.setProperty("fullscreen", "" + (!Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))));
+	   		}
+	   		if(input.keysDown[KeyEvent.VK_END] && Boolean.parseBoolean(gManager.config.getProperty("console")) && !(this.currentScreen instanceof ConsoleScreen)) {
+	   			input.keysDown[KeyEvent.VK_END] = false;
+	   			this.setCurrentScreen(new ConsoleScreen(this.currentScreen));
+	   	  	}
+	   		if(currentScreen != null) {
+				currentScreen.tick();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			this.crashScreen(e);
+		}
+	}
+
+	/** Oyun Motorunun Araçlarını Ayarlamaları Yapar **/
+	private void init() {
+		Art.init();
+		UniFont.createFont("default_font");
+		UniFont.createFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+		
+		if (init != null) {
+			init.fontLoadBefore();
+		}
+		
+		this.defaultFont = UniFont.getFont("Dialog.plain.12");
+		this.gManager.setLoadingScreen(new DefaultLoadingScreen("Yazı Tipiler Yükleniyor... Lütfen Bekleyin"));
+		
+		new Thread(new Runnable() {
+			
+			public void run() {
+				gManager.openLoadingScreen();
+				
+				UniFont.createFont(new Font(Font.DIALOG, Font.BOLD, 12));
+				UniFont.createFont(new Font(Font.DIALOG, Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.DIALOG, Font.BOLD | Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.DIALOG, Font.BOLD, 24));
+				
+				UniFont.createFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+				UniFont.createFont(new Font(Font.MONOSPACED, Font.BOLD, 12));
+				UniFont.createFont(new Font(Font.MONOSPACED, Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.MONOSPACED, Font.BOLD | Font.ITALIC, 12));
+				
+				UniFont.createFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
+				UniFont.createFont(new Font(Font.DIALOG_INPUT, Font.BOLD, 12));
+				UniFont.createFont(new Font(Font.DIALOG_INPUT, Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.DIALOG_INPUT, Font.BOLD | Font.ITALIC, 12));
+				
+				UniFont.createFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+				UniFont.createFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+				UniFont.createFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 12));
+				
+				UniFont.createFont(new Font(Font.SERIF, Font.PLAIN, 12));
+				UniFont.createFont(new Font(Font.SERIF, Font.BOLD, 12));
+				UniFont.createFont(new Font(Font.SERIF, Font.ITALIC, 12));
+				UniFont.createFont(new Font(Font.SERIF, Font.BOLD | Font.ITALIC, 12));
+				
+				if (init != null) {
+					init.fontLoad();
+				}
+				
+				System.out.println("Yazı Tipi Yükleme Tamamlandı!");
+				DikenEngine.this.defaultFont = UniFont.getFont("default_font");
+				
+				gManager.openMainMenu();
+			}
+			
+		}, "Custom Font Load").start();
+		
+		if (init != null) {
+			init.fontLoadAfter();
+		}
+
+		Command.initCommands();
+		
+		cursorBitmap = Art.i.cursors[0][1];
+		
+		this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
+	    this.screenBitmap = new Bitmap(this.screenImage);
+		
+		this.mouse = this.input.updateMouseStatus(SCALE);		
+		
+		this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));
+		this.requestFocus();
+		
+		Console.println("DikenEngine [" + DikenEngine.VERSION + "]");
+	    Console.println("Java: " + getJavaVersion());
+	      
+	    if(getJavaVersion() < 9) {
+	    	Console.println("Java 8 ve altı çalıştırılması önerilmez.");
+	    }
+	    
+	    if (init != null) {
+			init.systemInited();
+		}
+	}
+	
+	private static int getJavaVersion() {
 	    String version = System.getProperty("java.version");
 	    if(version.startsWith("1.")) {
 	        version = version.substring(2, 3);
@@ -91,272 +319,174 @@ public class DikenEngine extends Canvas implements Runnable {
 	        if(dot != -1) { version = version.substring(0, dot); }
 	    } return Integer.parseInt(version);
    }
-   
-   public static String generatePath() {
-	   return "game/";
-   }
-   
-   public boolean getEnableCursor() {
-	   return enableCursor;
-   }
-   
-   public void setEnableCursor(boolean value) {
-	   enableCursor = value;
-   }
-   
-   public Bitmap getCursorBitmap() {
-	   return cursorBitmap;
-   }
-   
-   public void setCursorBitmap(Bitmap bitmap) {
-	   cursorBitmap = bitmap;
-   }
 
-   public void run() {
-      this.init();
-      double nsPerFrame = 1.6666666666666666E7D;
-      double unprocessedTime = 0.0D;
-      double maxSkipFrames = 10.0D;
-      long lastTime = System.nanoTime();
-      long lastFrameTime = System.currentTimeMillis();
-      
-      int frames = 0; 
+	private void swap() {
+	   BufferStrategy bs = this.getBufferStrategy();
+	   if (bs == null) {
+	      this.createBufferStrategy(2);
+	      return;
+	   } else {
+		  Graphics g = bs.getDrawGraphics();
+	         
+	      int screenW = this.getWidth();
+	      int screenH = this.getHeight();
+	      int w = WIDTH * SCALE;
+	      int h = HEIGHT * SCALE;
+	      g.setColor(Color.BLACK);
+	      g.fillRect(0, 0, screenW, screenH);
+	      g.drawImage(screenImage, (screenW - w) / 2, (screenH - h) / 2, w, h, (ImageObserver)null);
+	      g.dispose();
+	      bs.show();
+	   }
+	}
 
-      while(this.keepRunning) {
-         long now = System.nanoTime();
-         double passedTime = (double)(now - lastTime) / nsPerFrame;
-         lastTime = now;
-         if (passedTime < -maxSkipFrames) {
-            passedTime = -maxSkipFrames;
-         }
-
-         if (passedTime > maxSkipFrames) {
-            passedTime = maxSkipFrames;
-         }
-
-         unprocessedTime += passedTime;
-
-         while(unprocessedTime > 1.0D) {
-            --unprocessedTime;
-            this.mouse = this.input.updateMouseStatus(SCALE);
-            this.tick();
-         }
-
-         this.render(this.screenBitmap);
-         ++frames;
-         if (System.currentTimeMillis() > lastFrameTime + 1000L) {
-            System.out.println(frames + " fps");
-            fps = frames;
-            lastFrameTime += 1000L;
-            frames = 0;
-         }
-
-         try {
-            Thread.sleep(1L);
-         } catch (InterruptedException var17) {
-            var17.printStackTrace();
-         }
-         
-         swap();
-      }
-   }
-
-   public void setCurrentScreen(Screen screen) {
-	  input.typed = "";
-	  if(currentScreen != null) {
-		  currentScreen.closeScreen();
-	  }
-      this.currentScreen = screen;
-      if (screen != null) {
-         screen.engine = this;
-         screen.openScreen();
-      }
-
-   }
-
-   private void swap() {
-      BufferStrategy bs = this.getBufferStrategy();
-      if (bs == null) {
-         this.createBufferStrategy(2);
-         return;
-      } else {
-         Graphics g = bs.getDrawGraphics();
-         
-         int screenW = this.getWidth();
-         int screenH = this.getHeight();
-         int w = WIDTH * SCALE;
-         int h = HEIGHT * SCALE;
-         g.setColor(Color.BLACK);
-         g.fillRect(0, 0, screenW, screenH);
-         g.drawImage(this.screenImage, (screenW - w) / 2, (screenH - h) / 2, w, h, (ImageObserver)null);
-         g.dispose();
-         bs.show();
-      }
-   }
-
-   private void render(Bitmap screen) {
-	  try {
-		  if (this.currentScreen != null) {
-			  this.currentScreen.render(screen);
-		  } else {
-		  }
-		  
-		  if(Boolean.parseBoolean(gManager.config.getProperty("show_fps"))) {
-			  Text.render("FPS: " + this.getFPS(), screen, 0, 0);
-		  }
-
-		  if (this.input.onScreen && enableCursor) {
-		     screen.draw(cursorBitmap, this.mouse.x - 1, this.mouse.y - 1);
-		  }
-		  
-		  
-	  } catch (Exception e) {
-		  e.printStackTrace();
-		  crashScreen(e);
-	  }
-      
-
-   }
-   
-   public void crashScreen(Exception e) {
-	   stop();
-	   
-	   StringWriter sWriter = new StringWriter();
-	   e.printStackTrace(new PrintWriter(sWriter));
-	   JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
-	   frame.dispose();
-	   
-	   System.exit(0);
-   }
-   
-   public void tickDimension() {
-	   int newWidth = getWidth();
-	   int newHeight = getHeight();
+	/** Oyun Motorunu Ayarlarını Sağlar **/
+	public static DikenEngine initEngine(int width, int height, int scale, String title) {
+		DikenEngine.WIDTH = width;
+		DikenEngine.HEIGHT = height;
+		DikenEngine.SCALE = scale;
+		
+		if(title == null) {
+			title = "Untitled Game";
+		}
+		
+		DikenEngine engine = new DikenEngine();
+		engine.gManager = new GameManager();
+		engine.gManager.config.setProperty("title", title);
+		JFrame engineWindow0 = new JFrame(title);
+		
+		engineWindow0.add(engine);
+		engineWindow0.pack();
+		try {
+			engineWindow0.setIconImage(ImageIO.read(DikenEngine.class.getResourceAsStream("/icon.png")));
+		} catch (IOException | IllegalArgumentException e) {
+		}
+		
+		engineWindow0.addWindowListener(engine);
+		engineWindow0.setLocationRelativeTo(null);		
+		engineWindow0.setResizable(false);
+		
+		engine.screenBitmap = new Bitmap(WIDTH, HEIGHT);
+		engine.engineWindow = engineWindow0;
+		DikenEngine.instance = engine;
+		
+		return DikenEngine.instance;
+	}
+	
+	/** Boyutlandırılabilir Ekranlarda Büyütürken Bitmap'de Büyüyüp Küçülür **/
+	public void tickDimension() {
+		int newWidth = getWidth();
+		int newHeight = getHeight();
 		   
-	   Dimension d = new Dimension(newWidth / DikenEngine.SCALE, newHeight / DikenEngine.SCALE);
-		   
-	   DikenEngine.WIDTH = (int) (d.getSize().getWidth());
-	   DikenEngine.HEIGHT = (int) (d.getSize().getHeight());
-		   
-	   if(screenImage == null) return;
-		   
-	   if(screenImage.getWidth() != d.getSize().getWidth() || screenImage.getHeight() != d.getSize().getHeight()) {
-		   screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-		   screenBitmap = new Bitmap(screenImage);
+		Dimension d = new Dimension(newWidth / DikenEngine.SCALE, newHeight / DikenEngine.SCALE);
 			   
-		   if(currentScreen != null) {
-			  setCurrentScreen(DikenEngine.getEngine().currentScreen);
-		   }
-	   }
-	   
-	   
-   }
+	    DikenEngine.WIDTH = (int) (d.getSize().getWidth());
+		DikenEngine.HEIGHT = (int) (d.getSize().getHeight());
+			   
+		if(screenImage == null) return;
+			   
+		if(screenImage.getWidth() != d.getSize().getWidth() || screenImage.getHeight() != d.getSize().getHeight()) {
+			screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
+			screenBitmap = new Bitmap(screenImage);
+				   
+			if(currentScreen != null) {
+			   setCurrentScreen(DikenEngine.getEngine().currentScreen);
+			}
+		}
+		   
+		   
+	}
+	
+	/** Oyun Motorunu Başlatır **/
+	public void startEngine() {
+		engineThread = new Thread(this, "Engine Loop Thread");
+		
+		if(engineThread.isAlive()) {
+			System.err.println("HATA: Zaten Motor Çalışıyor.");
+			return;
+		}
+		
+		engineWindow.setVisible(true);
+		running = true;
+		engineThread.start();
+	}
 
-   private void tick() {
-      try {
-    	  tickDimension();
-    	  if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))) {
-    		  this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
-    		  
-    		  if(this.fullscreen) {
-    			  frame.dispose();
-    			  
-    			  frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-    			  if (!frame.isUndecorated()) {
-    				  frame.setUndecorated(true);
-    			  }
-    			  frame.setVisible(true);
-    		  } else {
-    			  frame.dispose();
-    			  
-    			  frame.setExtendedState(JFrame.NORMAL);
-    			  if (frame.isUndecorated()) {
-    				  frame.setUndecorated(false);
-    			  }
-    			  frame.setVisible(true);
-    		  }
-    	  }
-    	  if(frame.getTitle() !=  gManager.config.getProperty("title")) {
-    		  frame.setTitle( gManager.config.getProperty("title"));
-    	  }
-    	  if(input.keysDown[KeyEvent.VK_F11]) {
-    		  input.keysDown[KeyEvent.VK_F11] = false;
-    		  gManager.config.setProperty("fullscreen", "" + (!Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))));
-    	  }
-    	  if (this.currentScreen != null) {
-    	      this.currentScreen.tick();
-    	  } else {
-    	  }
-	  } catch (Exception e) {
-		  e.printStackTrace();
-		  crashScreen(e);
-	  }
-      
-   }
-   
-   public static DikenEngine getEngine() {
-	   return localEngine;
-   }
-   
-   public static void setArgs(String[] args) {
-	   staticArgs = args;
-   }
-   
-   public static String getArgValue(String s) {
-	   if(s == null) return "";
-	   if(staticArgs == null) return "";
-	   String value = "";
-	   for (int i = 0; i < staticArgs.length; i++) {
-		   if (staticArgs[i].startsWith(s)) {
-			   value = staticArgs[i];
-		   }
+	/** Oyun Motorunu Elde Edilmesini Sağlar **/
+	public static DikenEngine getEngine() {
+		return DikenEngine.instance;
+	}
+
+	/** Ekranı Değiştirir **/
+	public void setCurrentScreen(Screen screen) {
+		  input.typed = "";
+		  if(currentScreen != null) {
+			  currentScreen.closeScreen();
+		  }
+	      this.currentScreen = screen;
+	      if (screen != null) {
+	         screen.engine = this;
+	         screen.openScreen();
+	      }
+
 	   }
-	   if (value.isEmpty()) {
-		   return "";
-	   }
-	   String[] a = value.split("=");
-	   return a[1];
-   }
-   
-   public static DikenEngine initEngine(int width, int height, int scale, String title) {   
-	   DikenEngine.WIDTH = width;
-	   DikenEngine.HEIGHT = height;
-	   DikenEngine.SCALE = scale;
-	   
-	   if(title == null) {
-		   title = "Untitled Game";
-	   }
-	   
-	   localEngine = new DikenEngine();
-	   localEngine.gManager = new GameManager();
-	   localEngine.gManager.config.setProperty("title", title);
-	   localEngine.frame = new JFrame(title);
-	   try {
-		   localEngine.frame.setIconImage(ImageIO.read(DikenEngine.class.getResourceAsStream("/icon.png")));
-	   } catch (IOException | IllegalArgumentException e) {
-	   }
-	   localEngine.frame.add(localEngine);
-	   localEngine.frame.pack();
-	   localEngine.frame.setResizable(false);
-	   localEngine.frame.setLocationRelativeTo((Component)null);
-	   localEngine.frame.setDefaultCloseOperation(3);
-	   localEngine.frame.setVisible(true);
-	   
-	   localEngine.start();
-	   
-	   return localEngine;
-   }
-   
-   public void setDefaultFont(UniFont uniFont) {
-	   this.defaultFont = uniFont;
-   }
-   
-   public static void main(String[] args) {
-	   DikenEngine engine = initEngine(320 * 2, 240 * 2, 2, "DikenEngine " + DikenEngine.VERSION);
-	   engine.frame.setResizable(true);
-   }
-   
-   public int getFPS() {   
-	   return fps;
-   }
+
+	public void crashScreen(Exception e) {
+
+		StringWriter sWriter = new StringWriter();
+		e.printStackTrace(new PrintWriter(sWriter));
+		JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+		engineWindow.dispose();
+		   
+		System.exit(0);
+	}
+
+	public void stop() {
+		this.running = false;
+		
+		try {
+			this.engineThread.join();
+		} catch (InterruptedException e) {
+			;
+		}
+	}
+	
+	/** Test Kod **/
+	public static void main(String[] args) {
+		DikenEngine engine = DikenEngine.initEngine(320 * 2, 240 * 2, 2, "Diken Engine " + DikenEngine.VERSION);
+		engine.engineWindow.setResizable(true);
+		engine.startEngine();
+	}
+
+	public void windowOpened(WindowEvent e) {
+	}
+
+	public void windowClosing(WindowEvent e) {
+		if(currentScreen != null) {
+			currentScreen.closeScreen();
+		}
+		
+		this.stop();
+		try {
+			this.engineThread.join();
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		System.exit(0);
+	}
+
+	public void windowClosed(WindowEvent e) {
+	}
+
+	public void windowIconified(WindowEvent e) {
+	}
+
+	public void windowDeiconified(WindowEvent e) {
+	}
+
+	public void windowActivated(WindowEvent e) {
+	}
+
+	public void windowDeactivated(WindowEvent e) {
+	}
 }

@@ -1,5 +1,10 @@
 package com.emirenesgames.engine.gui;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
@@ -12,10 +17,12 @@ public class UniFont {
 	
 	private static List<UniFont> unifonts = new ArrayList<UniFont>();
 	
+	@Deprecated
 	public String charTypes = "";
-	public String author, font_name;
 	
-	public Bitmap[] charBitmaps;
+	public String font_name;
+	
+	public Map<String, Bitmap> charBitmaps = new HashMap<String, Bitmap>();
 	
 	public String name;
 	
@@ -36,19 +43,19 @@ public class UniFont {
 		}
 		
 		JSONObject obj = new JSONObject(data2);
-		font.font_name = obj.getString("font_name");
-		font.author = obj.getString("author");
+		font.font_name = obj.getString("font_name") + "-" + obj.getString("author");
 		
 		JSONArray array = obj.getJSONArray("chars");
 		
-		font.charBitmaps = new Bitmap[array.length()];
-		
 		for (int i = 0; i < array.length(); i++) {
 			JSONObject obj1 = array.getJSONObject(i);
-			font.charTypes = font.charTypes + obj1.getString("char");
-		    font.charBitmaps[i] = new Bitmap(obj1.getInt("width"), obj1.getInt("height"));
+			String chara = obj1.getString("char");
+			font.charTypes = font.charTypes + chara;
+			
+			Bitmap charBitmap = new Bitmap(obj1.getInt("width"), obj1.getInt("height"));
 		    
 		    if (obj1.getInt("x") < 0 || obj1.getInt("y") < 0) {
+		    	font.charBitmaps.put(chara, charBitmap);
     			continue;
     		}
 		    
@@ -56,8 +63,9 @@ public class UniFont {
 		    	for(int y = 0; y < obj1.getInt("height"); y++) {
 		    		
 		    		int color = bitmap.pixels[(x + obj1.getInt("x")) + (y + obj1.getInt("y")) * bitmap.w];
+		    		charBitmap.setPixel(x, y, color);
 		    		
-		    		font.charBitmaps[i].setPixel(x, y, color);
+		    		font.charBitmaps.put(chara, charBitmap);
 			    }
 		    }
 		    
@@ -65,9 +73,51 @@ public class UniFont {
 		}
 		
 		System.out.println("Loaded Font: " + fontName);
-		System.out.println("Font Types: " + font.charTypes);
 		
 		unifonts.add(font);
+	}
+	
+	public static void createFont(Font font) {
+		UniFont de_font = new UniFont();
+				
+		BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.setFont(font);
+		FontMetrics fontMetrics = g2d.getFontMetrics();
+			        
+		Map<String, Bitmap> charBitmaps = new HashMap<String, Bitmap>();
+
+		for (int i=0; i < font.getNumGlyphs(); i++) {
+			if (font.canDisplay(i)) {
+				int w = fontMetrics.charWidth(i);
+			    int h = fontMetrics.getHeight();
+			    if(w <= 0 || h <= 0) {
+			    	continue;
+			    }
+			    de_font.charTypes += "" + (char)i;
+			    BufferedImage font_img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			    Graphics2D font_g2d = font_img.createGraphics();
+			    font_g2d.setFont(font);
+			    font_g2d.setColor(Color.WHITE);
+			    font_g2d.drawString("" + (char)i, 0, fontMetrics.getAscent());
+			    font_g2d.dispose();
+			    charBitmaps.put("" + (char)i, Art.toBitmap(font_img));
+			}
+		}
+			    
+		Locale locale = Locale.getDefault();
+			    
+		de_font.name = font.getFontName() + "." + font.getSize();
+		de_font.font_name = font.getFontName() + "_" + locale.getLanguage()  + "-" + locale.getCountry();
+		de_font.charBitmaps = charBitmaps;
+		
+		de_font.name = de_font.name.replaceAll(" ", "_");
+			        
+		g2d.dispose();
+			    
+		unifonts.add(de_font);
+			    
+		System.out.println("Loaded Font: " + de_font.name);
 	}
 	
 	public static boolean removeFont(String s) {
@@ -100,24 +150,25 @@ public class UniFont {
 	public static Bitmap[] getBitmapChars(String text, UniFont font) {
 		List<Bitmap> list = new ArrayList<Bitmap>();
 		for (int i = 0; i < text.length(); i++) {
-			int ch = font.charTypes.indexOf(text.charAt(i));
-			if (ch < 0) continue;
-			if (ch > font.charBitmaps.length) continue;
-			list.add(font.charBitmaps[ch]);
+			char ch = text.charAt(i);
+			list.add(font.charBitmaps.getOrDefault(ch + "", generateMissingChar()));
 		}
 		return list.toArray(new Bitmap[] {});
 	}
 	
 	public static Bitmap getBitmapChar(char chara, UniFont font) {
-		int ch = font.charTypes.indexOf(chara);
-		if (ch < 0) return new Bitmap(6, 8);
-		if (ch > font.charBitmaps.length) return new Bitmap(6, 8);
-		return font.charBitmaps[ch];
+		return font.charBitmaps.getOrDefault(chara + "", generateMissingChar());
 	}
 	
 	public static UniFont getFont(int id) {
 		UniFont font = unifonts.get(id);
 		return font;
+	}
+	
+	public static Bitmap generateMissingChar() {
+		Bitmap bitmap = new Bitmap(6, 8);
+		bitmap.box(1, 0, 6 - 2, 8 - 1, 0xffffffff);
+		return bitmap;
 	}
 
 }
