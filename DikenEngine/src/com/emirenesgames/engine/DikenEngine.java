@@ -48,7 +48,7 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	public static int SCALE = 3;
 	
 	/** Motor Sürümü **/
-	public static final String VERSION = "v0.5";
+	public static final String VERSION = "v0.5.1";
 	
 	/** Motor Penceresi **/
 	public JFrame engineWindow;
