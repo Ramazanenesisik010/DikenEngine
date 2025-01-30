@@ -120,42 +120,59 @@ public class Bitmap implements java.io.Serializable{
 	    return (a << 24) | (r << 16) | (g << 8) | b;
 	}
 
-	public void drawLine(int x1, int y1, int x2, int y2, int color) {
-		x1 += this.xOffs;
-		y1 += this.yOffs;
-		x2 += this.xOffs;
-		y2 += this.yOffs;
-		int dx = Math.abs(x2 - x1);
-		int dy = Math.abs(y2 - y1);
-		
-		int sx = x1 < x2 ? 1 : -1;  // x yönünde adım
-		int sy = y1 < y2 ? 1 : -1;  // y yönünde adım
-		
-		int err = dx - dy;
- 
-		while (true) {
-			// Pikseli çiz, x1 ve y1 geçerli noktayı temsil eder
-			if (x1 >= 0 && x1 < w && y1 >= 0 && y1 < h) {
-				pixels[y1 * w + x1] = color;
-			}
- 
-			// Hedef noktaya ulaşıldıysa döngüden çık
-			if (x1 == x2 && y1 == y2) break;
- 
-			int e2 = 2 * err;
- 
-			// x yönünde hareket et
-			if (e2 > -dy) {
-				err -= dy;
-				x1 += sx;
-			}
- 
-			// y yönünde hareket et
-			if (e2 < dx) {
-				err += dx;
-				y1 += sy;
-			}
-		}
+	public void drawLine(int x1, int y1, int x2, int y2, int color, int width) {
+	    x1 += this.xOffs;
+	    y1 += this.yOffs;
+	    x2 += this.xOffs;
+	    y2 += this.yOffs;
+	    int dx = Math.abs(x2 - x1);
+	    int dy = Math.abs(y2 - y1);
+	    
+	    int sx = x1 < x2 ? 1 : -1;
+	    int sy = y1 < y2 ? 1 : -1;
+	    
+	    int err = dx - dy;
+	    
+	    // Genişlik için başlangıç ve bitiş ofsetleri
+	    int startX, endX, startY, endY;
+	    if (width % 2 == 0) {
+	        startX = -width / 2;
+	        endX = width / 2 - 1;
+	        startY = startX;
+	        endY = endX;
+	    } else {
+	        startX = -(width - 1) / 2;
+	        endX = (width - 1) / 2;
+	        startY = startX;
+	        endY = endX;
+	    }
+	    
+	    while (true) {
+	        // Mevcut nokta etrafında genişlik karesi çiz
+	        for (int ox = startX; ox <= endX; ox++) {
+	            for (int oy = startY; oy <= endY; oy++) {
+	                int px = x1 + ox;
+	                int py = y1 + oy;
+	                if (px >= 0 && px < w && py >= 0 && py < h) {
+	                    pixels[py * w + px] = color;
+	                }
+	            }
+	        }
+	        
+	        if (x1 == x2 && y1 == y2) break;
+	        
+	        int e2 = 2 * err;
+	        
+	        if (e2 > -dy) {
+	            err -= dy;
+	            x1 += sx;
+	        }
+	        
+	        if (e2 < dx) {
+	            err += dx;
+	            y1 += sy;
+	        }
+	    }
 	}
 
 	public void draw(Bitmap b, int xp, int yp) {
