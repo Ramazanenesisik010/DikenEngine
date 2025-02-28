@@ -10,7 +10,7 @@ import com.emirenesgames.engine.gui.background.DownBackground;
 public class DES extends Screen {
 
 	private Screen parent;
-	private Properties newProperties = new Properties();
+	public Properties newProperties = new Properties();
 
 	public DES(Screen parent) {
 		this.parent = parent;
@@ -53,18 +53,22 @@ public class DES extends Screen {
 		}
 
 		if (id == 2) {
+			this.saveButtonClicked();
 			this.engine.gManager.config = newProperties;
 			this.engine.setCurrentScreen(parent);
 		}
+	}
+	
+	protected void saveButtonClicked() {
 	}
 
 	public void openScreen() {
 		this.newProperties = (Properties) this.engine.gManager.config.clone();
 		this.setBackground(new DownBackground(Art.i.bgd_tiles[0][0]));
 		this.buttons.clear();
-		this.buttons.add(new CheckBox("Konsol'u Etkinleştir", 10, (3 + (3 * 24)) + 12));
+		this.buttons.add(new CheckBox("Konsol'u Etkinleştir (END)", 10, (3 + (3 * 24)) + 12));
 		this.buttons.add(new CheckBox("FPS'i Göster", 10,  (3 + 24 * 5) + 14));
-		this.buttons.add(new CheckBox("Tam Ekran", 10,  (3 + 22 * 6) + (14 * 2)));
+		this.buttons.add(new CheckBox("Tam Ekran (F11)", 10,  (3 + 22 * 6) + (14 * 2)));
 		this.buttons.add(new Button("Vazgeç", 10, DikenEngine.HEIGHT - (1 * 20), 100, 15, 1));
 		this.buttons.add(new Button("Tamam", 10 + 106, DikenEngine.HEIGHT - (1 * 20), 100, 15, 2));
 		

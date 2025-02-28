@@ -1,6 +1,7 @@
 package com.emirenesgames.engine;
 
 import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -17,11 +18,11 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
    private boolean oldMb0, oldMb1, oldMb2;
    public boolean onScreen;
    private Mouse input = new Mouse();
-   private Canvas canvas;
+   private Component canvas;
    public boolean[] keysDown = new boolean[65536];
    public String typed = "";
 
-   public InputHandler(Canvas canvas) {
+   public InputHandler(Component canvas) {
       this.canvas = canvas;
       canvas.addMouseListener(this);
       canvas.addMouseMotionListener(this);

@@ -24,7 +24,7 @@ public class CheckBox extends GuiObject {
 		Bitmap bitmap = new Bitmap((width + 2) + Text.stringBitmapWidth(text, DikenEngine.getEngine().defaultFont), height + 4);
 		bitmap.draw(new Button("", 0, 0, width, height, 0).render(), 0, 0);
 		if(checked) {
-			bitmap.draw(Art.i.check_box[1][0], 0, 0);
+			bitmap.draw(Art.i.check_box[1][0], width / 2 - 8, height / 2 - 8);
 		}
 		return bitmap;
 	}

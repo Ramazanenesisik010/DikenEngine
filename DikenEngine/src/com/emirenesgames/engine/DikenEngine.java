@@ -47,8 +47,10 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	/** Çizerken Boyutlandırma Yapar **/
 	public static int SCALE = 3;
 	
+	private int tmpW, tmpH;
+	
 	/** Motor Sürümü **/
-	public static final String VERSION = "v0.5.1";
+	public static final String VERSION = "v0.5.2";
 	
 	/** Motor Penceresi **/
 	public JFrame engineWindow;
@@ -184,6 +186,8 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 				this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
 	   		  
 	   		    if(this.fullscreen) {
+	   		    	this.tmpW = WIDTH;
+	   		    	this.tmpH = HEIGHT;
 	   		    	engineWindow.dispose();
 	   			  
 	   			    engineWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -193,8 +197,11 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	   				engineWindow.setVisible(true);
 	   				requestFocus();
 	   				engineWindow.toFront();
-	   				engineWindow.requestFocus();
+	   				//engineWindow.requestFocus();
 	   		    } else {
+	   		    	engineWindow.setSize(tmpW * SCALE, tmpH * SCALE);
+	   		    	engineWindow.setLocationRelativeTo(null);
+	   		    	
 	   		    	engineWindow.dispose();
 	   			  
 	   				engineWindow.setExtendedState(JFrame.NORMAL);
@@ -204,11 +211,11 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	   				engineWindow.setVisible(true);
 	   				requestFocus();
 	   				engineWindow.toFront();
-	   				engineWindow.requestFocus();
+	   				//engineWindow.requestFocus();
 	   		    }
 			}
 			if(engineWindow.getTitle() !=  gManager.config.getProperty("title")) {
-				engineWindow.setTitle( gManager.config.getProperty("title"));
+				engineWindow.setTitle(gManager.config.getProperty("title"));
 	   	  	}
 	   		if(input.keysDown[KeyEvent.VK_F11]) {
 	   			input.keysDown[KeyEvent.VK_F11] = false;
