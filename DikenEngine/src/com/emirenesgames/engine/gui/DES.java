@@ -36,6 +36,12 @@ public class DES extends Screen {
 		} else {
 			newProperties.setProperty("fullscreen", "false");
 		}
+		
+		if (((CheckBox)this.buttons.get(3)).isChecked()) {
+			newProperties.setProperty("sync", "true");
+		} else {
+			newProperties.setProperty("sync", "false");
+		}
 	}
 
 	public void render(Bitmap screen) {
@@ -45,6 +51,7 @@ public class DES extends Screen {
 		
 		Text.render("Konsol", screen, 10, 3 + 24 * 3, UniFont.getFont("Dialog.plain.12"));
 		Text.render("Görüntü", screen, 10, (3 + 24 * 5), UniFont.getFont("Dialog.plain.12"));
+		Text.render("Maximun FPS (Oyun Hızı): ", screen, 10, (3 + 24 * 7) + (14 * 4));
 	}
 
 	protected void actionListener(int id) {
@@ -54,6 +61,7 @@ public class DES extends Screen {
 
 		if (id == 2) {
 			this.saveButtonClicked();
+			this.engine.TARGET_FPS = Integer.parseInt(((TextField)this.buttons.get(4)).getText());
 			this.engine.gManager.config = newProperties;
 			this.engine.setCurrentScreen(parent);
 		}
@@ -69,12 +77,15 @@ public class DES extends Screen {
 		this.buttons.add(new CheckBox("Konsol'u Etkinleştir (END)", 10, (3 + (3 * 24)) + 12));
 		this.buttons.add(new CheckBox("FPS'i Göster", 10,  (3 + 24 * 5) + 14));
 		this.buttons.add(new CheckBox("Tam Ekran (F11)", 10,  (3 + 22 * 6) + (14 * 2)));
+		this.buttons.add(new CheckBox("Senkronizasyon (Sync)", 10,  (3 + 24 * 6) + (14 * 3)));
+		this.buttons.add(new TextField(this.engine.TARGET_FPS + "", 10,  (3 + 22 * 8) + (14 * 4), 100, 16, this.engine).setNumberic());
 		this.buttons.add(new Button("Vazgeç", 10, DikenEngine.HEIGHT - (1 * 20), 100, 15, 1));
 		this.buttons.add(new Button("Tamam", 10 + 106, DikenEngine.HEIGHT - (1 * 20), 100, 15, 2));
 		
 		((CheckBox)this.buttons.get(0)).setCheck(Boolean.parseBoolean(this.engine.gManager.config.getProperty("console")));
 		((CheckBox)this.buttons.get(1)).setCheck(Boolean.parseBoolean(this.engine.gManager.config.getProperty("show_fps")));
 		((CheckBox)this.buttons.get(2)).setCheck(Boolean.parseBoolean(this.engine.gManager.config.getProperty("fullscreen")));
+		((CheckBox)this.buttons.get(3)).setCheck(Boolean.parseBoolean(this.engine.gManager.config.getProperty("sync")));
 	}
 
 }

@@ -6,8 +6,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -35,7 +37,7 @@ import com.emirenesgames.engine.gui.UniFont;
 /**
  * DikenEngine, Oyun Motorunun Temel Ayarlarınon Değiştirildiği Sınıftır.
  **/
-public class DikenEngine extends Canvas implements Runnable, WindowListener {
+public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private static final long serialVersionUID = 1L;
 	
 	/** Oyun Motorun Genişliği **/
@@ -51,6 +53,8 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	
 	/** Motor Sürümü **/
 	public static final String VERSION = "v0.5.2";
+
+	public long TARGET_FPS = 60;
 	
 	/** Motor Penceresi **/
 	public JFrame engineWindow;
@@ -89,7 +93,7 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	public Bitmap cursorBitmap;
 
 	/** Resim **/
-	private BufferedImage screenImage;
+	private volatile BufferedImage screenImage;
 	private Init init;
 	
 	/** initEngine Kullanılmalıdır **/
@@ -108,57 +112,61 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	}
 
 	public void run() {
-		 try {
-			 this.init();
-			 double nsPerFrame = 1.6666666666666666E7D;
-			 double unprocessedTime = 0.0D;
-			 double maxSkipFrames = 10.0D;
-			 long lastTime = System.nanoTime();
-			 long lastFrameTime = System.currentTimeMillis();
-			      
-			 int frames = 0; 
+	    try {
+	        this.init();
+	        long targetTime = 1000000000L / TARGET_FPS; // 60 FPS
+	        long lastTime = System.nanoTime();
+	        long timer = System.currentTimeMillis();
+	        int frames = 0;
 
-			 while(this.running) {
-			    long now = System.nanoTime();
-			    double passedTime = (double)(now - lastTime) / nsPerFrame;
-			    lastTime = now;
-			    if (passedTime < -maxSkipFrames) {
-			       passedTime = -maxSkipFrames;
-			    }
-
-			    if (passedTime > maxSkipFrames) {
-			       passedTime = maxSkipFrames;
-			    }
-
-			    unprocessedTime += passedTime;
-
-			    while(unprocessedTime > 1.0D) {
-			       --unprocessedTime;
-			       this.mouse = this.input.updateMouseStatus(SCALE);
-			       this.tick();
-			    }
-
-			    this.render(this.screenBitmap);
-			    ++frames;
-			    if (System.currentTimeMillis() > lastFrameTime + 1000L) {
-			       fps = frames;
-			       lastFrameTime += 1000L;
-			       frames = 0;
-			    }
-
-			    try {
-			       Thread.sleep(1L);
-			    } catch (InterruptedException var17) {
-			       var17.printStackTrace();
-			    } 
-			       
-			    this.swap();
-			 }
-		 } catch (Exception e) {
-			 e.printStackTrace();
-			 this.crashScreen(e);
-		 }
-	 }
+	        while(running) {
+	        	targetTime = 1000000000L / TARGET_FPS; // 60 FPS
+	            long now = System.nanoTime();
+	            long delta = now - lastTime;
+	            
+	            // Update
+	            if(delta >= targetTime) {
+	                lastTime = now;
+	                if(Boolean.parseBoolean(gManager.config.getProperty("sync"))) {
+	                	Toolkit.getDefaultToolkit().sync();
+	                }
+	               
+	                mouse = input.updateMouseStatus(SCALE);
+	                tick();
+	                
+	                // Render
+	                this.screenImage = screenBitmap.toImage();
+	                render(screenBitmap);
+	                frames++;
+	                
+	                // FPS hesaplama
+	                if(System.currentTimeMillis() - timer > 1000) {
+	                    fps = frames;
+	                    frames = 0;
+	                    timer += 1000;
+	                }
+	            }
+	            
+	            // EDT üzerinde repaint çağır
+	            SwingUtilities.invokeLater(() -> {
+	                try {
+	                    repaint();
+	                } catch(Exception e) {
+	                    e.printStackTrace();
+	                }
+	            });
+	            
+	            // CPU kullanımını kontrol altında tut
+	            long sleep = (lastTime - System.nanoTime() + targetTime) / 1000000;
+	            if(sleep > 0) {
+	                Thread.sleep(sleep);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        this.crashScreen(e);
+	    }
+	}
 	
 	/** Çizme Method'u **/
 	private void render(Bitmap screen) {
@@ -169,7 +177,7 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 			if(gManager.config.getProperty("show_fps").equals("true")) {
 				Text.render("FPS: " + fps, screen, 0, 0);
 			}
-			if(gManager.enabledCursor && cursorBitmap != null) {
+			if(gManager.cursorShowType == 1 && cursorBitmap != null) {
 				screen.draw(cursorBitmap, mouse.x - 1, mouse.y - 1);
 			}
 		} catch (Exception e) {
@@ -298,11 +306,14 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 		cursorBitmap = Art.i.cursors[0][1];
 		
 		this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-	    this.screenBitmap = new Bitmap(this.screenImage);
+	    this.screenBitmap = new Bitmap(DikenEngine.WIDTH, DikenEngine.HEIGHT);
 		
 		this.mouse = this.input.updateMouseStatus(SCALE);		
 		
-		this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));
+		this.setDoubleBuffered(true);
+		
+		if (gManager.cursorShowType != 2) {this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(16, 16, 2), new Point(0, 0), "invisible"));}
+			
 		this.requestFocus();
 		
 		Console.println("DikenEngine [" + DikenEngine.VERSION + "]");
@@ -325,26 +336,36 @@ public class DikenEngine extends Canvas implements Runnable, WindowListener {
 	        int dot = version.indexOf(".");
 	        if(dot != -1) { version = version.substring(0, dot); }
 	    } return Integer.parseInt(version);
-   }
-
-	private void swap() {
-	   BufferStrategy bs = this.getBufferStrategy();
-	   if (bs == null) {
-	      this.createBufferStrategy(2);
-	      return;
-	   } else {
-		  Graphics g = bs.getDrawGraphics();
-	         
-	      int screenW = this.getWidth();
-	      int screenH = this.getHeight();
-	      int w = WIDTH * SCALE;
-	      int h = HEIGHT * SCALE;
-	      g.setColor(Color.BLACK);
-	      g.fillRect(0, 0, screenW, screenH);
-	      g.drawImage(screenImage, (screenW - w) / 2, (screenH - h) / 2, w, h, (ImageObserver)null);
-	      g.dispose();
-	      bs.show();
-	   }
+	}
+	
+	protected void paintComponent(Graphics g) {
+	    super.paintComponent(g);
+	    
+	    // Geçici referans alarak thread güvenliği
+	    BufferedImage currentImage = screenImage;
+	    if(currentImage != null) {
+	        int screenW = getWidth();
+	        int screenH = getHeight();
+	        
+	        // Orijinal boyutlar
+	        int originalW = currentImage.getWidth();
+	        int originalH = currentImage.getHeight();
+	        
+	        // Ölçeklenmiş boyutlar
+	        int scaledW = originalW * SCALE;
+	        int scaledH = originalH * SCALE;
+	        
+	        // Merkezleme
+	        int x = (screenW - scaledW) / 2;
+	        int y = (screenH - scaledH) / 2;
+	        
+	        // Yüksek kaliteli ölçeklendirme
+	        Graphics2D g2d = (Graphics2D)g;
+	        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+	        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+	        
+	        g2d.drawImage(currentImage, x, y, scaledW, scaledH, null);
+	    }
 	}
 
 	/** Oyun Motorunu Ayarlarını Sağlar **/

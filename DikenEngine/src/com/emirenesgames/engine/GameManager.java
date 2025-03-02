@@ -14,13 +14,17 @@ public class GameManager {
 	
 	public Properties config;
 
-	public boolean enabledCursor = true;
+	/**0 = fareyi gizle ama sistem faresini gösterme
+	 * 1 = fareyi göster
+	 * 2= sistem faresini göster**/
+	public int cursorShowType = 1; 
 
 	public GameManager() {
 		this.config = new Properties();
 		this.config.setProperty("fullscreen", "false");
 		this.config.setProperty("show_fps", "false");
 		this.config.setProperty("console", "false");
+		this.config.setProperty("sync", "true");
 		this.config.setProperty("title", "DikenEngine " + DikenEngine.VERSION);
 		this.mainMenuScreen = new DefaultMainMenuScreen();
 		this.loadingScreen = new DefaultLoadingScreen("Running Engine");
