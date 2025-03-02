@@ -52,7 +52,7 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private int tmpW, tmpH;
 	
 	/** Motor Sürümü **/
-	public static final String VERSION = "v0.5.2";
+	public static final String VERSION = "v0.6.0";
 
 	public long TARGET_FPS = 60;
 	
