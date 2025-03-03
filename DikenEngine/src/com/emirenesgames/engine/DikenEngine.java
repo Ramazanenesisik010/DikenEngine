@@ -52,7 +52,7 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private int tmpW, tmpH;
 	
 	/** Motor Sürümü **/
-	public static final String VERSION = "v0.6.0";
+	public static final String VERSION = "v0.6.1";
 
 	public long TARGET_FPS = 60;
 	
@@ -114,52 +114,69 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	public void run() {
 	    try {
 	        this.init();
-	        long targetTime = 1000000000L / TARGET_FPS; // 60 FPS
-	        long lastTime = System.nanoTime();
+	        long targetFrameTime = 1000000000L / TARGET_FPS; // Time per frame in nanoseconds
+	        long fixedUpdateTime = 1000000000L / 60; // Fixed update rate at 60Hz
+	        long lastRenderTime = System.nanoTime();
+	        long lastUpdateTime = System.nanoTime();
 	        long timer = System.currentTimeMillis();
 	        int frames = 0;
+	        double accumulator = 0;
 
 	        while(running) {
-	        	targetTime = 1000000000L / TARGET_FPS; // 60 FPS
-	            long now = System.nanoTime();
-	            long delta = now - lastTime;
+	        	targetFrameTime = 1000000000L / TARGET_FPS; // Time per frame in nanoseconds
+	            long currentTime = System.nanoTime();
 	            
-	            // Update
-	            if(delta >= targetTime) {
-	                lastTime = now;
-	                if(Boolean.parseBoolean(gManager.config.getProperty("sync"))) {
-	                	Toolkit.getDefaultToolkit().sync();
-	                }
-	               
-	                mouse = input.updateMouseStatus(SCALE);
-	                tick();
+	            // Frame time for rendering
+	            long frameTimeDelta = currentTime - lastRenderTime;
+	            
+	            // Handling variable frame rate rendering
+	            if(frameTimeDelta >= targetFrameTime) {
+	                lastRenderTime = currentTime;
 	                
-	                // Render
+	                // Update mouse input on every frame
+	                mouse = input.updateMouseStatus(SCALE);
+	                
+	                // Time since last game logic update
+	                long updateDelta = currentTime - lastUpdateTime;
+	                accumulator += updateDelta;
+	                lastUpdateTime = currentTime;
+	                
+	                // Run game logic at a fixed rate (60 times per second)
+	                while(accumulator >= fixedUpdateTime) {
+	                    tick();
+	                    accumulator -= fixedUpdateTime;
+	                }
+	                
+	                // Render at the target frame rate
 	                this.screenImage = screenBitmap.toImage();
 	                render(screenBitmap);
 	                frames++;
 	                
-	                // FPS hesaplama
+	                if(Boolean.parseBoolean(gManager.config.getProperty("sync"))) {
+	                    Toolkit.getDefaultToolkit().sync();
+	                }
+	                
+	                // FPS calculation
 	                if(System.currentTimeMillis() - timer > 1000) {
 	                    fps = frames;
 	                    frames = 0;
 	                    timer += 1000;
 	                }
+	                
+	                // EDT üzerinde repaint çağır
+	                SwingUtilities.invokeLater(() -> {
+	                    try {
+	                        repaint();
+	                    } catch(Exception e) {
+	                        e.printStackTrace();
+	                    }
+	                });
 	            }
 	            
-	            // EDT üzerinde repaint çağır
-	            SwingUtilities.invokeLater(() -> {
-	                try {
-	                    repaint();
-	                } catch(Exception e) {
-	                    e.printStackTrace();
-	                }
-	            });
-	            
-	            // CPU kullanımını kontrol altında tut
-	            long sleep = (lastTime - System.nanoTime() + targetTime) / 1000000;
-	            if(sleep > 0) {
-	                Thread.sleep(sleep);
+	            // Sleep to save CPU
+	            long sleepTime = (lastRenderTime - System.nanoTime() + targetFrameTime) / 1000000;
+	            if(sleepTime > 0) {
+	                Thread.sleep(sleepTime);
 	            }
 	        }
 	    } catch (Exception e) {
@@ -190,7 +207,7 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private void tick() {
 		try {
 			tickDimension();
-			if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))) {
+			if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen")) && this.engineWindow != null) {
 				this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
 	   		  
 	   		    if(this.fullscreen) {
@@ -222,9 +239,11 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	   				//engineWindow.requestFocus();
 	   		    }
 			}
-			if(engineWindow.getTitle() !=  gManager.config.getProperty("title")) {
-				engineWindow.setTitle(gManager.config.getProperty("title"));
-	   	  	}
+			if (engineWindow != null) {
+				if(engineWindow.getTitle() != gManager.config.getProperty("title")) {
+					engineWindow.setTitle(gManager.config.getProperty("title"));
+		   	  	}
+			}
 	   		if(input.keysDown[KeyEvent.VK_F11]) {
 	   			input.keysDown[KeyEvent.VK_F11] = false;
 	   		  	gManager.config.setProperty("fullscreen", "" + (!Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))));
@@ -370,17 +389,7 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 
 	/** Oyun Motorunu Ayarlarını Sağlar **/
 	public static DikenEngine initEngine(int width, int height, int scale, String title) {
-		DikenEngine.WIDTH = width;
-		DikenEngine.HEIGHT = height;
-		DikenEngine.SCALE = scale;
-		
-		if(title == null) {
-			title = "Untitled Game";
-		}
-		
-		DikenEngine engine = new DikenEngine();
-		engine.gManager = new GameManager();
-		engine.gManager.config.setProperty("title", title);
+		DikenEngine engine = initEngineNonFrame(width, height, scale, title);
 		JFrame engineWindow0 = new JFrame(title);
 		
 		engineWindow0.add(engine);
@@ -394,8 +403,25 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		engineWindow0.setLocationRelativeTo(null);		
 		engineWindow0.setResizable(false);
 		
-		engine.screenBitmap = new Bitmap(WIDTH, HEIGHT);
 		engine.engineWindow = engineWindow0;
+		DikenEngine.instance = engine;
+		
+		return DikenEngine.instance;
+	}
+	
+	public static DikenEngine initEngineNonFrame(int width, int height, int scale, String title) {
+		DikenEngine.WIDTH = width;
+		DikenEngine.HEIGHT = height;
+		DikenEngine.SCALE = scale;
+		
+		if(title == null) {
+			title = "Untitled Game";
+		}
+		
+		DikenEngine engine = new DikenEngine();
+		engine.gManager = new GameManager();
+		engine.gManager.config.setProperty("title", title);
+		engine.screenBitmap = new Bitmap(WIDTH, HEIGHT);
 		DikenEngine.instance = engine;
 		
 		return DikenEngine.instance;
@@ -433,8 +459,9 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 			System.err.println("HATA: Zaten Motor Çalışıyor.");
 			return;
 		}
-		
-		engineWindow.setVisible(true);
+		if (engineWindow != null) {
+			engineWindow.setVisible(true);
+		}
 		running = true;
 		engineThread.start();
 	}
@@ -463,7 +490,9 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		StringWriter sWriter = new StringWriter();
 		e.printStackTrace(new PrintWriter(sWriter));
 		JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
-		engineWindow.dispose();
+		if (engineWindow != null) {
+			engineWindow.dispose();
+		}
 		   
 		System.exit(0);
 	}

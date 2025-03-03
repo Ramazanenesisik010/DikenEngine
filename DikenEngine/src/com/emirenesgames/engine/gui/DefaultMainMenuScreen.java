@@ -22,7 +22,7 @@ public class DefaultMainMenuScreen extends Screen {
 
 	public void actionListener(int id) {
 		if(id == 0) {
-			
+			engine.setCurrentScreen(new PerformaceTestScreen(this));
 		}
 		if(id == 1) {
 			engine.setCurrentScreen(new ConsoleScreen(this));
@@ -52,7 +52,6 @@ public class DefaultMainMenuScreen extends Screen {
 		this.setBackground(new DownBackground(Art.i.bgd_tiles[0][0]));
 		this.buttons.clear();
 		Button performaceButton = new Button("Performans Testi", 10, 100, 200, 15, 0);
-		performaceButton.active = false;
 		this.buttons.add(performaceButton);
 		this.buttons.add(new Button("Ayarlar", 10, 100 + (2 * 20), 200, 15, 5));
 		this.buttons.add(new Button("Oyundan Çık!", 10, 100 + (3 * 20), 200, 15, 2));

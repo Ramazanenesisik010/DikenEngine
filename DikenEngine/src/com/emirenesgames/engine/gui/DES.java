@@ -51,7 +51,7 @@ public class DES extends Screen {
 		
 		Text.render("Konsol", screen, 10, 3 + 24 * 3, UniFont.getFont("Dialog.plain.12"));
 		Text.render("Görüntü", screen, 10, (3 + 24 * 5), UniFont.getFont("Dialog.plain.12"));
-		Text.render("Maximun FPS (Oyun Hızı): ", screen, 10, (3 + 24 * 7) + (14 * 4));
+		Text.render("Maximun FPS: ", screen, 10, ((3 + 24 * 7) + (14 * 4)) - 3);
 	}
 
 	protected void actionListener(int id) {
