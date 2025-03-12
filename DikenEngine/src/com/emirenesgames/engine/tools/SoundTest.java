@@ -9,6 +9,7 @@ import javax.swing.filechooser.FileFilter;
 import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
+import com.emirenesgames.engine.Language;
 import com.emirenesgames.engine.gui.Button;
 import com.emirenesgames.engine.gui.Screen;
 import com.emirenesgames.engine.gui.Text;
@@ -199,12 +200,13 @@ public class SoundTest extends Screen {
 	}
 
 	public void openScreen() {
+		Language lang = Language.i;
 		this.setBackground(new DownBackground(Art.i.bgd_tiles[5][0]));
 		this.buttons.clear();
 		this.buttons.add(new Button("Aç", (DikenEngine.WIDTH) - (6 + 16), 2 + 18, 16, 16, 0));
 		this.buttons.add(new Button("Oynat", 2, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 2));
 		this.buttons.add(new Button("Durdur", 2 + 106, (((4 + 9) * 4) + (18 * 2)) + (16 + 9), 100, 16, 3));
-		this.buttons.add(new Button("Geri Dön", 2, DikenEngine.HEIGHT - 16 - 6, 100, 16, 1));
+		this.buttons.add(new Button(lang.languageValue("gui.back"), 2, DikenEngine.HEIGHT - 16 - 6, 100, 16, 1));
 		tField = new TextField(2, 2 + 18, ((DikenEngine.WIDTH) - 6) - 20, 18, this.engine);
 		this.buttons.add(tField);
 		if(file != null) {

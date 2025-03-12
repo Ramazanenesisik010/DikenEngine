@@ -18,6 +18,7 @@ public abstract class Command {
 		commands[6] = new ImageToTextCommand();
 		commands[7] = new GetCommand();
 		commands[8] = new DeleteCommand();
+		commands[8] = new WindowCommand();
 	}
 	
 	public static Command findCommand(String cName) throws DikenEngineException {
@@ -41,8 +42,7 @@ public abstract class Command {
 		return cmd;
 	}
 	
-	public void runCommand(String[] args) throws DikenEngineException {
-	}
+	public abstract void runCommand(String[] args) throws DikenEngineException;
 	
 	public JSONObject commandInfo;
 	

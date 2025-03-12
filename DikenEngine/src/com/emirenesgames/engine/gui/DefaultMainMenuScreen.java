@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
+import com.emirenesgames.engine.Language;
 import com.emirenesgames.engine.gui.background.DownBackground;
 import com.emirenesgames.engine.tools.SoundTest;
 
@@ -18,7 +19,7 @@ public class DefaultMainMenuScreen extends Screen {
 		screen.draw(Art.i.icon_x16, 10, (100 - 32) - 10);
 		Text.render("DikenEngine", screen, (10 + 32) + 2, (100 - 32) - 10);
 		Text.render(DikenEngine.VERSION, screen, (10 + 32) + 2, ((100 - 32) - 10) + 9);
-	}
+	}   
 
 	public void actionListener(int id) {
 		if(id == 0) {
@@ -28,7 +29,11 @@ public class DefaultMainMenuScreen extends Screen {
 			engine.setCurrentScreen(new ConsoleScreen(this));
 		}
 		if(id == 2) {
-			engine.engineWindow.dispose();
+			engine.gManager.saveConfig();
+			
+			if (engine.engineWindow != null)
+				engine.engineWindow.dispose();
+			
 			System.exit(0);
 		}
         if(id == 4) {
@@ -49,13 +54,15 @@ public class DefaultMainMenuScreen extends Screen {
 	}
 
 	public void openScreen() {
+		Language lang = Language.i;
+		
 		this.setBackground(new DownBackground(Art.i.bgd_tiles[0][0]));
 		this.buttons.clear();
-		Button performaceButton = new Button("Performans Testi", 10, 100, 200, 15, 0);
+		Button performaceButton = new Button(lang.languageValue("dmainmenu.performancetest"), 10, 100, 200, 15, 0);
 		this.buttons.add(performaceButton);
-		this.buttons.add(new Button("Ayarlar", 10, 100 + (2 * 20), 200, 15, 5));
-		this.buttons.add(new Button("Oyundan Çık!", 10, 100 + (3 * 20), 200, 15, 2));
-		this.buttons.add(new Button("Ses Testi", 10, 100 + (1 * 20), 200, 15, 4));
+		this.buttons.add(new Button(lang.languageValue("dmainmenu.setting"), 10, 100 + (2 * 20), 200, 15, 5));
+		this.buttons.add(new Button(lang.languageValue("dmainmenu.exit"), 10, 100 + (3 * 20), 200, 15, 2));
+		this.buttons.add(new Button(lang.languageValue("dmainmenu.soundtest"), 10, 100 + (1 * 20), 200, 15, 4));
 		this.buttons.add(new Button("Github", 10, DikenEngine.HEIGHT - (1 * 20), 200, 15, 3));
 	}
 }

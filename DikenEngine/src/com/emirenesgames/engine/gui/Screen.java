@@ -9,6 +9,8 @@ public abstract class Screen {
    public DikenEngine engine;
    
    private IBackground background;
+   public int width;
+   public int height;
 
    public void tick() {
 	  if(background != null) {
@@ -19,18 +21,21 @@ public abstract class Screen {
 		   GuiObject guiObj = buttons.get(i);
 		   
 		   guiObj.tick();
-			
-		   if(guiObj.intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && this.engine.input.mb0) {
-			   this.engine.input.mb0 = false; 
-			   if(guiObj instanceof Button) {
-	               int id = ((Button)guiObj).id;
-	               this.actionListener(id);
-	           } else if(guiObj instanceof CheckBox) {
-	               ((CheckBox) guiObj).click();
-	           } else if(guiObj instanceof TextField) {
-	               ((TextField)guiObj).setFocused(!((TextField)guiObj).isFocused());
-	           }
-		   }
+		
+		   if (engine.wManager.screenActionMode(engine.mouse.getPoint())) {
+			   if(guiObj.intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && this.engine.input.mb0) {
+				   this.engine.input.mb0 = false; 
+				   if(guiObj instanceof Button) {
+		               int id = ((Button)guiObj).id;
+		               this.actionListener(id);
+		               this.actionListener(((Button)guiObj));
+		           } else if(guiObj instanceof CheckBox) {
+		               ((CheckBox) guiObj).click();
+		           } else if(guiObj instanceof TextField) {
+		               ((TextField)guiObj).setFocused(!((TextField)guiObj).isFocused());
+		           }
+			   }
+		   }	   
 	   }
    }
 
@@ -40,9 +45,9 @@ public abstract class Screen {
 	   }
 	   
        for(int i = 0; i < this.buttons.size(); ++i) {
-    	   GuiObject btn = this.buttons.get(i);
+    	   GuiObject btn = this.buttons.get(i);   
     	   if (btn instanceof Button) {
-    		   if(btn.intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1))) {
+    		   if(btn.intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && engine.wManager.screenActionMode(engine.mouse.getPoint())) {
             	   screen.blendDraw(btn.render(), btn.x, btn.y, 0xff0023a6);
                } else if(!btn.active) {
             	   screen.blendDraw(btn.render(), btn.x, btn.y, 0xff000000);
@@ -54,10 +59,14 @@ public abstract class Screen {
            }
            
            if(btn instanceof Button) {
-        	   Text.renderCenter(((Button)btn).text, screen, btn.x + btn.width / 2, btn.y + ((btn.height / 2) - 4));
+        	   Text.renderCenter(((Button)btn).text, screen, btn.x + btn.width / 2, btn.y + ((btn.height / 2) - 4), ((Button)btn).tColor);
            } else if (btn instanceof CheckBox){
-        	   Text.render(((CheckBox)btn).text, screen, btn.x + (20 + 6), btn.y + ((20 / 2) - (8 / 2)));
+        	   Text.render(((CheckBox)btn).text, screen, btn.x + (btn.width + 6), btn.y + ((btn.height / 2) - (8 / 2)));
            }
+           
+           if (engine.gManager.config.getProperty("debug").equals("true")) {
+			   screen.box(btn.x, btn.y, btn.x + btn.width, btn.y + btn.height, 0xff00ff00);
+		   }
        }
    }
    
@@ -72,6 +81,10 @@ public abstract class Screen {
 
    protected void actionListener(int id) {
    }
+   
+   protected void actionListener(Button button) {
+   }
+
 
    public void openScreen() {
    }

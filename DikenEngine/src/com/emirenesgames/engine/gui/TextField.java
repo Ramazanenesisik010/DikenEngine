@@ -61,9 +61,14 @@ public class TextField extends GuiObject{
 			}
 		}
 		
-		if(!intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && this.engine.input.mb0) {
+		if(this.engine.wManager.activeWindow != null && this.engine.wManager.findActiveWindow2(this.engine.mouse.getPoint())) {
+			if (!this.engine.wManager.activeWindow.guiObjetIsPressed(this.engine.mouse.getPoint(), this) && this.engine.input.mb0) {
+				this.isFocused = false;
+			}
+		} else if(!intersects(new Hitbox(this.engine.mouse.x - 1, this.engine.mouse.y - 1)) && this.engine.input.mb0) {
 			this.isFocused = false;
 		}
+
 		++this.counter;
 	}
 	

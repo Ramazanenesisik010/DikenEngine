@@ -6,7 +6,7 @@ import com.emirenesgames.engine.Bitmap;
 public class Button extends GuiObject {
 	private static final long serialVersionUID = 1L;
 	public String text = "";
-	public int id, renderX, renderY, xa, ya;
+	public int id, renderX, renderY, xa, ya, tColor;
 	
 	
 	public Button(String text, int x, int y, int width, int height, int id) {
@@ -17,6 +17,18 @@ public class Button extends GuiObject {
 		this.renderY = ya;
 		this.text = text;
 		this.id = id;	
+		this.tColor = 0xffffffff;
+	}
+	
+	public Button(String text, int x, int y, int width, int height, int color, int id) {
+		super(x, y, width, height);
+		this.xa = x;
+		this.ya = y;
+		this.renderX = xa;
+		this.renderY = ya;
+		this.text = text;
+		this.id = id;	
+		this.tColor = color;
 	}
 	
 	public Bitmap render() {

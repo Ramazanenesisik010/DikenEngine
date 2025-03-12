@@ -148,6 +148,14 @@ public class UniFont {
 	}
 	
 	public static Bitmap[] getBitmapChars(String text, UniFont font) {
+		if(font == null) {
+			Bitmap[] bitmaps = new Bitmap[text.length()];
+			for (int i = 0; i < text.length(); i++) {
+				bitmaps[i] = generateMissingChar();
+			}
+			return bitmaps;
+		}
+		
 		List<Bitmap> list = new ArrayList<Bitmap>();
 		for (int i = 0; i < text.length(); i++) {
 			char ch = text.charAt(i);
@@ -157,6 +165,10 @@ public class UniFont {
 	}
 	
 	public static Bitmap getBitmapChar(char chara, UniFont font) {
+		if(font == null) {
+			return generateMissingChar();
+		}
+		
 		return font.charBitmaps.getOrDefault(chara + "", generateMissingChar());
 	}
 	

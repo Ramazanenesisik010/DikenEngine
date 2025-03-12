@@ -4,23 +4,28 @@ import java.awt.Canvas;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-public class InputHandler implements MouseListener, MouseMotionListener, KeyListener {
+public class InputHandler extends MouseAdapter implements KeyListener {
    private int xm;
    private int ym;
    public boolean mb0, mb0Clicked, mb0Released;
    public boolean mb1, mb1Clicked, mb1Released;
    public boolean mb2, mb2Clicked, mb2Released;
    
-   private boolean oldMb0, oldMb1, oldMb2;
+   private volatile boolean oldMb0, oldMb1, oldMb2;
    public boolean onScreen;
    private Mouse input = new Mouse();
    private Component canvas;
    public boolean[] keysDown = new boolean[65536];
    public String typed = "";
+   private boolean mouseDragged;
+   private boolean mouseMoved;
+   private boolean mouseEntered;
+   private boolean mouseExited;
 
    public InputHandler(Component canvas) {
       this.canvas = canvas;
@@ -33,12 +38,14 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
       this.xm = me.getX();
       this.ym = me.getY();
       this.onScreen = true;
+      this.mouseDragged = true;
    }
 
    public synchronized void mouseMoved(MouseEvent me) {
       this.xm = me.getX();
       this.ym = me.getY();
       this.onScreen = true;
+      this.mouseMoved = true;
    }
 
    public synchronized void mouseClicked(MouseEvent me) {
@@ -51,12 +58,14 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
       this.xm = me.getX();
       this.ym = me.getY();
       this.onScreen = true;
+      this.mouseEntered = true;
    }
 
    public synchronized void mouseExited(MouseEvent me) {
       this.xm = me.getX();
       this.ym = me.getY();
       this.onScreen = false;
+      this.mouseExited = true;
    }
 
    public synchronized void mousePressed(MouseEvent me) {
@@ -113,6 +122,10 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
 		  DikenEngine.getEngine().currentScreen.keyPressed(ke.getKeyChar());
 	  }
 	  
+	  if(DikenEngine.getEngine().wManager.activeWindow != null) {
+		  DikenEngine.getEngine().wManager.activeWindow.keyPressed(ke.getKeyChar());
+	  }
+	  
 	  if(DikenEngine.getEngine().defaultFont.charTypes.indexOf(ke.getKeyChar()) >= 0) {
 		  this.typed = this.typed + ke.getKeyChar();
 	  }
@@ -120,7 +133,12 @@ public class InputHandler implements MouseListener, MouseMotionListener, KeyList
    }
 
    public synchronized Mouse updateMouseStatus(int scale) {
-      this.input.update(this.xm / scale, this.ym / scale);
+      this.input.update(this.xm / scale, this.ym / scale, mouseDragged, mouseMoved, mouseEntered, mouseExited);
+      
+      mouseDragged = false;
+      mouseMoved = false;
+      mouseEntered = false;
+      mouseExited = false;
       
       this.mb0Clicked = !this.oldMb0 && mb0;
       this.mb1Clicked = !this.oldMb1 && mb1;

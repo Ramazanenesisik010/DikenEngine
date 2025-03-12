@@ -9,9 +9,9 @@ public class Language {
 	
 	public static Language i;
 	
-	private Map<String, Properties> languageTable = new HashMap<String, Properties>();
+	public Map<String, Properties> languageTable = new HashMap<String, Properties>();
 	
-	private String selectedLanguage = ""; // English
+	public String selectedLanguage = ""; // English
 	
 	public Language() {
 		this.loadLanguage("en-US");
@@ -29,6 +29,9 @@ public class Language {
 		String a = "";
 		try {
 			while((a = reader.readLine()) != null) {
+				if (a.isBlank())
+					continue;
+				
 				String[] b = a.split("=");
 				lang.setProperty(b[0], b[1]);
 			}
@@ -49,6 +52,13 @@ public class Language {
 	
 	public String languageValue(String key) {
 		return languageTable.get(selectedLanguage).getProperty(key, key);
+	}
+	
+	public String languageValue(String key, String lang) {
+		if (languageTable.containsKey(lang)) {
+			return languageTable.get(lang).getProperty(key, key);
+		}
+		return key;
 	}
 
 }

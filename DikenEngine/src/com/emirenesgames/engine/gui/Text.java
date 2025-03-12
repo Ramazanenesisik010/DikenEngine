@@ -3,32 +3,90 @@ package com.emirenesgames.engine.gui;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
 
-public class Text {
+public class Text extends GuiObject {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public String text;
+	public int color;
+	public UniFont font;
+
+	public Text(String text, int x, int y) {
+		this(text, x, y, 0xFFFFFFFF, DikenEngine.getEngine().defaultFont);
+	}
+	
+	public Text(String text, int x, int y, UniFont font) {
+		this(text, x, y, 0xFFFFFFFF, font);
+	}
+	
+	public Text(String text, int x, int y, int color, UniFont font) {
+		super(x, y, Text.stringBitmapWidth(text, DikenEngine.getEngine().defaultFont), Text.stringBitmapAverageHeight(text, DikenEngine.getEngine().defaultFont));
+		this.text = text;
+		this.color = color;
+		this.font = font;
+	}
+	
+	public Text(String text, int x, int y, int color) {
+		this(text, x, y, color, DikenEngine.getEngine().defaultFont);
+	}
+	
+	public Bitmap render() {
+		Bitmap bitmap = super.render();
+		Text.render(text, bitmap, 0, 0, color, font);
+		return bitmap;
+	}
+	
+	public void tick() {
+		if((this.width != Text.stringBitmapWidth(text, font))) {
+			this.width = Text.stringBitmapWidth(text, font);
+		}
+		
+		if((this.height != Text.stringBitmapAverageHeight(text, DikenEngine.getEngine().defaultFont))) {
+			this.height = Text.stringBitmapAverageHeight(text, font);
+		}
+	}
 
 	public static void render(String text, Bitmap bitmap, int x, int y, int color, UniFont font) {
-		Bitmap[] chars = UniFont.getBitmapChars(text, font);
-		int w = 0;
-		for (int i = 0; i < chars.length; i++) {		
-			Bitmap btp = chars[i];
-			if (btp == UniFont.getBitmapChar('§', font) && i + 6 < text.length())
-            {	
-                String colorCode = text.substring(i + 1, i + 7);
-                
-                color = (int) Long.parseLong(colorCode, 16);
-                
-                i += 6;
-                continue;          
-            }
-			
-			int darkColor = 0, var6;
-			var6 = darkColor & -16777216;
-			darkColor = (color & 16579836) >> 2;
-		    darkColor += var6;
-			
-			bitmap.blendDraw(btp, (x + w) + 1, y + 1, darkColor);
-			bitmap.blendDraw(btp, x + w, y, color);
-			w += ((btp.w) + 1);
-		}
+	    // Split the text into lines
+	    String[] lines = text.split("\n");
+	    
+	    // Track the current y-position for rendering
+	    int currentY = y;
+	    
+	    // Height of a single line (approximate)
+	    int lineHeight = stringBitmapAverageHeight(text, font) + 2; // Add a small padding
+	    
+	    for (String line : lines) {
+	        Bitmap[] chars = UniFont.getBitmapChars(line, font);
+	        int w = 0;
+	        
+	        for (int i = 0; i < chars.length; i++) {
+	            Bitmap btp = chars[i];
+	            
+	            // Color code handling
+	            if (btp == UniFont.getBitmapChar('§', font) && i + 6 < line.length()) {
+	                String colorCode = line.substring(i + 1, i + 7);
+	                color = (int) Long.parseLong(colorCode, 16);
+	                i += 6;
+	                continue;
+	            }
+	            
+	            int darkColor = 0, var6;
+	            var6 = darkColor & -16777216;
+	            darkColor = (color & 16579836) >> 2;
+	            darkColor += var6;
+	            
+	            // Render character with shadow
+	            bitmap.blendDraw(btp, (x + w) + 1, currentY + 1, darkColor);
+	            bitmap.blendDraw(btp, x + w, currentY, color);
+	            
+	            w += ((btp.w) + 1);
+	        }
+	        
+	        // Move to the next line
+	        currentY += lineHeight;
+	    }
 	}
 	
 	public static void render(String text, Bitmap bitmap, int x, int y, int color) {
@@ -69,6 +127,25 @@ public class Text {
 			w += ((btp.w) + 1);
 		}
 		
+		return w;
+	}
+	
+	public static int stringBitmapAverageWidth(String[] texts, UniFont font) {
+		int w = 0;
+		int ah = 0;
+		for(int l = 0; l < texts.length; l++) {
+			String text = texts[l];
+			
+			Bitmap[] chars = UniFont.getBitmapChars(text, font);
+			
+			for (int i = 0; i < chars.length; i++) {
+				Bitmap btp = chars[i];
+				ah += ((btp.w) + 1);
+			}
+		}
+		
+		w = ah / texts.length;
+				
 		return w;
 	}
 	

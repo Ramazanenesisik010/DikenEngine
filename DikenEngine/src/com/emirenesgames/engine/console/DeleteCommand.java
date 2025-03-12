@@ -8,7 +8,8 @@ public class DeleteCommand extends Command {
 		super("delete", "Veriyi Siler.");
 	}
 	
-	public void runCommand(String[] args) {if (args.length == 1){
+	public void runCommand(String[] args) {
+		if (args.length == 1){
 			String key = args[0];
 			if(DikenEngine.getEngine().gManager.config.containsKey(key)) {
 				DikenEngine.getEngine().gManager.config.remove(key);

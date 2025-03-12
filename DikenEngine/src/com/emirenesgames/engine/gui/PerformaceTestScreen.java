@@ -8,6 +8,7 @@ import javax.swing.filechooser.FileFilter;
 import com.emirenesgames.engine.Art;
 import com.emirenesgames.engine.Bitmap;
 import com.emirenesgames.engine.DikenEngine;
+import com.emirenesgames.engine.Language;
 import com.emirenesgames.engine.gui.background.StaticBackground;
 
 public class PerformaceTestScreen extends Screen {
@@ -66,7 +67,7 @@ public class PerformaceTestScreen extends Screen {
 			Bitmap bitmap = Art.load(fileChooser.getSelectedFile().getAbsolutePath(), 1);
 			return bitmap;
 		}
-		return null;
+		return Art.i.icon_x16;
 
 	}
 	
@@ -76,12 +77,13 @@ public class PerformaceTestScreen extends Screen {
 	}
 
 	public void openScreen() {
+		Language lang = Language.i;
 		userImage = Art.i.icon_x16;
 		this.setBackground(new StaticBackground(Art.i.bgd_tiles[0][0]));
 		this.buttons.clear();
-		this.buttons.add(new Button("Geri Dön", 10, DikenEngine.HEIGHT - (1 * 20), 150, 15, 3));
-		this.buttons.add(new Button("Resim Yükle", 10, DikenEngine.HEIGHT - (2 * 20), 150, 15, 0));
-		this.buttons.add(new Button("Arka Planı Şeffaf Yap!", 10, DikenEngine.HEIGHT - (3 * 20), 150, 15, 1));
+		this.buttons.add(new Button(lang.languageValue("gui.back"), 10, DikenEngine.HEIGHT - (1 * 20), 150, 15, 3));
+		this.buttons.add(new Button(lang.languageValue("performance.loadimg"), 10, DikenEngine.HEIGHT - (2 * 20), 150, 15, 0));
+		this.buttons.add(new Button(lang.languageValue("performance.imgremovealpha"), 10, DikenEngine.HEIGHT - (3 * 20), 150, 15, 1));
 	}
 
 }

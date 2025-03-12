@@ -1,23 +1,17 @@
 package com.emirenesgames.engine;
 
-import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.io.File;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,11 +22,13 @@ import javax.swing.*;
 import com.emirenesgames.engine.console.Command;
 import com.emirenesgames.engine.console.Console;
 import com.emirenesgames.engine.gui.ConsoleScreen;
+import com.emirenesgames.engine.gui.CrashScreen;
 import com.emirenesgames.engine.gui.DefaultLoadingScreen;
-import com.emirenesgames.engine.gui.DefaultMainMenuScreen;
 import com.emirenesgames.engine.gui.Screen;
 import com.emirenesgames.engine.gui.Text;
 import com.emirenesgames.engine.gui.UniFont;
+import com.emirenesgames.engine.gui.window.Window;
+import com.emirenesgames.engine.gui.window.WindowManager;
 
 /**
  * DikenEngine, Oyun Motorunun Temel Ayarlarınon Değiştirildiği Sınıftır.
@@ -52,8 +48,9 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private int tmpW, tmpH;
 	
 	/** Motor Sürümü **/
-	public static final String VERSION = "v0.6.1";
+	public static final String VERSION = "v0.7.0";
 
+	/** Hedef FPS **/
 	public long TARGET_FPS = 60;
 	
 	/** Motor Penceresi **/
@@ -95,6 +92,11 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	/** Resim **/
 	private volatile BufferedImage screenImage;
 	private Init init;
+	
+	/** Debug **/
+	private String[] debug = new String[32000];
+
+	public WindowManager wManager;
 	
 	/** initEngine Kullanılmalıdır **/
 	private DikenEngine() {
@@ -148,7 +150,6 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	                }
 	                
 	                // Render at the target frame rate
-	                this.screenImage = screenBitmap.toImage();
 	                render(screenBitmap);
 	                frames++;
 	                
@@ -191,8 +192,21 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 			if(currentScreen != null) {
 				currentScreen.render(screen);
 			}
-			if(gManager.config.getProperty("show_fps").equals("true")) {
+			wManager.render(screen);
+			if(gManager.config.getProperty("show_fps").equals("true") && !gManager.config.getProperty("debug").equals("true")) {
 				Text.render("FPS: " + fps, screen, 0, 0);
+			}
+			if(gManager.config.getProperty("debug").equals("true") && !(this.currentScreen instanceof ConsoleScreen)) {
+				for(int i = 0; i < debug.length; i++) {
+					String string = debug[i];
+					if(string != null) {
+						screen.fill(1, 1 + (i * Text.stringBitmapAverageHeight(string, defaultFont)),
+								1 + Text.stringBitmapWidth(string, defaultFont),
+								1 + (i * Text.stringBitmapAverageHeight(string, defaultFont) + Text.stringBitmapAverageHeight(string, defaultFont)),
+								0xff000000);
+						Text.render(string, screen, 2, 2 + (i * Text.stringBitmapAverageHeight(string, defaultFont)));
+					}
+				}
 			}
 			if(gManager.cursorShowType == 1 && cursorBitmap != null) {
 				screen.draw(cursorBitmap, mouse.x - 1, mouse.y - 1);
@@ -207,6 +221,21 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	private void tick() {
 		try {
 			tickDimension();
+			debug[1] = "FPS: " + fps;
+			debug[2] = "Mouse X: " + mouse.x;
+			debug[3] = "Mouse Y: " + mouse.y;
+			debug[4] = "Total Vitual Window: " + wManager.size();
+			debug[5] = "Java " + Runtime.version().toString();
+			debug[6] = "Available processors (cores): " +  Runtime.getRuntime().availableProcessors();
+			long var39 = Runtime.getRuntime().maxMemory();
+            long var37 = Runtime.getRuntime().totalMemory();
+            long var41 = Runtime.getRuntime().freeMemory();
+            long var44 = var37 - var41;
+			String var45 = "Used memory: " + var44 * 100L / var39 + "% (" + var44 / 1024L / 1024L + "MB) of " + var39 / 1024L / 1024L + "MB";
+			debug[8] = var45;
+            var45 = "Allocated memory: " + var37 * 100L / var39 + "% (" + var37 / 1024L / 1024L + "MB)";
+			debug[9] = var45;
+			
 			if(this.fullscreen != Boolean.parseBoolean(gManager.config.getProperty("fullscreen")) && this.engineWindow != null) {
 				this.fullscreen = Boolean.parseBoolean(gManager.config.getProperty("fullscreen"));
 	   		  
@@ -248,11 +277,18 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	   			input.keysDown[KeyEvent.VK_F11] = false;
 	   		  	gManager.config.setProperty("fullscreen", "" + (!Boolean.parseBoolean(gManager.config.getProperty("fullscreen"))));
 	   		}
-	   		if(input.keysDown[KeyEvent.VK_END] && Boolean.parseBoolean(gManager.config.getProperty("console")) && !(this.currentScreen instanceof ConsoleScreen)) {
+	   		if(input.keysDown[KeyEvent.VK_END] && gManager.config.getProperty("console").equals("true") && !(this.currentScreen instanceof ConsoleScreen)) {
 	   			input.keysDown[KeyEvent.VK_END] = false;
 	   			this.setCurrentScreen(new ConsoleScreen(this.currentScreen));
 	   	  	}
+	   		Language lang = Language.i;
+	   		if(lang.selectedLanguage != gManager.config.getProperty("lang")) {
+	   			lang.setDefaultLang(gManager.config.getProperty("lang"));
+	   		}
+	   		wManager.tick();
 	   		if(currentScreen != null) {
+	   			currentScreen.width = DikenEngine.WIDTH;
+	   			currentScreen.height = DikenEngine.HEIGHT;
 				currentScreen.tick();
 			}
 		} catch (Exception e) {
@@ -325,9 +361,11 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		cursorBitmap = Art.i.cursors[0][1];
 		
 		this.screenImage = new BufferedImage(DikenEngine.WIDTH, DikenEngine.HEIGHT, 2);
-	    this.screenBitmap = new Bitmap(DikenEngine.WIDTH, DikenEngine.HEIGHT);
+	    this.screenBitmap = new Bitmap(screenImage);
 		
 		this.mouse = this.input.updateMouseStatus(SCALE);		
+		this.wManager = new WindowManager();
+		
 		
 		this.setDoubleBuffered(true);
 		
@@ -337,6 +375,8 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		
 		Console.println("DikenEngine [" + DikenEngine.VERSION + "]");
 	    Console.println("Java: " + getJavaVersion());
+	    
+	    debug[0] = "DikenEngine [" + DikenEngine.VERSION + "]";
 	      
 	    if(getJavaVersion() < 9) {
 	    	Console.println("Java 8 ve altı çalıştırılması önerilmez.");
@@ -380,9 +420,11 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	        
 	        // Yüksek kaliteli ölçeklendirme
 	        Graphics2D g2d = (Graphics2D)g;
-	        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-	        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-	        
+	        if(gManager.config.get("antialiasing") == "true") {
+	        	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	        	g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	        } 
+        
 	        g2d.drawImage(currentImage, x, y, scaledW, scaledH, null);
 	    }
 	}
@@ -419,10 +461,11 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		}
 		
 		DikenEngine engine = new DikenEngine();
-		engine.gManager = new GameManager();
-		engine.gManager.config.setProperty("title", title);
 		engine.screenBitmap = new Bitmap(WIDTH, HEIGHT);
 		DikenEngine.instance = engine;
+		
+		DikenEngine.instance.gManager = new GameManager();
+		DikenEngine.instance.gManager.config.setProperty("title", title);
 		
 		return DikenEngine.instance;
 	}
@@ -486,15 +529,18 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 	   }
 
 	public void crashScreen(Exception e) {
-
-		StringWriter sWriter = new StringWriter();
-		e.printStackTrace(new PrintWriter(sWriter));
-		JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
-		if (engineWindow != null) {
-			engineWindow.dispose();
+		if (this.gManager.config.getProperty("legacy-crash").equals("true")) {
+			this.setCurrentScreen(new CrashScreen(e));
+		} else {
+			StringWriter sWriter = new StringWriter();
+			e.printStackTrace(new PrintWriter(sWriter));
+			JOptionPane.showMessageDialog(null, "Hata: " + sWriter.toString() + "\n\nLütfen Github'dan Bildiriniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+			if (engineWindow != null) {
+				engineWindow.dispose();
+			}
+			   
+			System.exit(0);
 		}
-		   
-		System.exit(0);
 	}
 
 	public void stop() {
@@ -521,14 +567,8 @@ public class DikenEngine extends JPanel implements Runnable, WindowListener {
 		if(currentScreen != null) {
 			currentScreen.closeScreen();
 		}
-		
+		gManager.saveConfig();
 		this.stop();
-		try {
-			this.engineThread.join();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-		
 		System.exit(0);
 	}
 

@@ -16,6 +16,7 @@ public class Art {
    public Bitmap[][] bgd_tiles = loadAndCut("/background_tiles.png", 32, 32, Art.CLASS_RESOURCE_LOAD);
    public Bitmap[][] check_box = loadAndCut("/check_box.png", 20, 20, Art.CLASS_RESOURCE_LOAD);
    public Bitmap icon_x16 = load("/icon-x16.png");
+   public Bitmap[][] default_win_icons = loadAndCut("/win_icons.png", 16, 16);
 
    public Bitmap[][] se_button = loadAndCut("/screen_editor_buttons.png", 16, 16, Art.CLASS_RESOURCE_LOAD);
 

@@ -209,40 +209,222 @@ public class Bitmap implements java.io.Serializable{
 			}
 		}
 	}
+	
+	// Düzeltilmiş blend metodu
+	public void blend(Bitmap b, int xp, int yp) {
+	    xp += xOffs;
+	    yp += yOffs;
+	    int x0 = xp;
+	    int x1 = xp + b.w;
+	    int y0 = yp;
+	    int y1 = yp + b.h;
+	    if (x0 < 0) x0 = 0;
+	    if (y0 < 0) y0 = 0;
+	    if (x1 > w) x1 = w;
+	    if (y1 > h) y1 = h;
 
+	    for (int y = y0; y < y1; y++) {
+	        int sp = (y - yp) * b.w - xp;
+	        int dp = y * w;
+
+	        for (int x = x0; x < x1; x++) {
+	            int c = b.pixels[sp + x];
+	            int a = (c >> 24) & 0xff;
+	            
+	            // Sadece alfa değeri > 0 olan pikselleri işle
+	            if (a > 0) {
+	                int bgColor = pixels[dp + x];
+	                
+	                // Arka plan ve kaynak pikselin renk bileşenlerini çıkar
+	                int bgR = (bgColor >> 16) & 0xff;
+	                int bgG = (bgColor >> 8) & 0xff;
+	                int bgB = bgColor & 0xff;
+	                
+	                int srcR = (c >> 16) & 0xff;
+	                int srcG = (c >> 8) & 0xff;
+	                int srcB = c & 0xff;
+	                
+	                // Alfa değerine göre renk karışımını hesapla
+	                int newR = (srcR * a + bgR * (255 - a)) / 255;
+	                int newG = (srcG * a + bgG * (255 - a)) / 255;
+	                int newB = (srcB * a + bgB * (255 - a)) / 255;
+	                
+	                // Yeni pikseli ayarla (alfa kanalı tamamen opak)
+	                pixels[dp + x] = 0xff000000 | (newR << 16) | (newG << 8) | newB;
+	            }
+	        }
+	    }
+	}
+
+	// Düzeltilmiş blendDraw metodu
 	public void blendDraw(Bitmap b, int xp, int yp, int col) {
-		xp += xOffs;
-		yp += yOffs;
-		int x0 = xp;
-		int x1 = xp + b.w;
-		int y0 = yp;
-		int y1 = yp + b.h;
-		if (x0 < 0) x0 = 0;
-		if (y0 < 0) y0 = 0;
-		if (x1 > w) x1 = w;
-		if (y1 > h) y1 = h;
+	    xp += xOffs;
+	    yp += yOffs;
+	    int x0 = xp;
+	    int x1 = xp + b.w;
+	    int y0 = yp;
+	    int y1 = yp + b.h;
+	    if (x0 < 0) x0 = 0;
+	    if (y0 < 0) y0 = 0;
+	    if (x1 > w) x1 = w;
+	    if (y1 > h) y1 = h;
 
-		if (xFlip) {
-			for (int y = y0; y < y1; y++) {
-				int sp = (y - yp) * b.w + xp + b.w - 1;
-				int dp = (y) * w;
+	    // col renginin bileşenlerini çıkar
+	    int colR = (col >> 16) & 0xff;
+	    int colG = (col >> 8) & 0xff;
+	    int colB = col & 0xff;
 
-				for (int x = x0; x < x1; x++) {
-					int c = b.pixels[sp - x];
-					if (c < 0) pixels[dp + x] = ((b.pixels[sp - x] & 0xfefefefe) + (col & 0xfefefefe)) >> 1;
-				}
-			}
-		} else {
-			for (int y = y0; y < y1; y++) {
-				int sp = (y - yp) * b.w - xp;
-				int dp = (y) * w;
+	    if (xFlip) {
+	        for (int y = y0; y < y1; y++) {
+	            int sp = (y - yp) * b.w + xp + b.w - 1;
+	            int dp = y * w;
 
-				for (int x = x0; x < x1; x++) {
-					int c = b.pixels[sp + x];
-					if (c < 0) pixels[dp + x] = ((b.pixels[sp + x] & 0xfefefefe) + (col & 0xfefefefe)) >> 1;
-				}
-			}
-		}
+	            for (int x = x0; x < x1; x++) {
+	                int c = b.pixels[sp - x];
+	                int a = (c >> 24) & 0xff;
+	                
+	                if (a > 0) {
+	                    int srcR = (c >> 16) & 0xff;
+	                    int srcG = (c >> 8) & 0xff;
+	                    int srcB = c & 0xff;
+	                    
+	                    // Kaynak ve col değerini karıştır
+	                    int blendR = (srcR + colR) / 2;
+	                    int blendG = (srcG + colG) / 2;
+	                    int blendB = (srcB + colB) / 2;
+	                    
+	                    // Mevcut piksel ile alfa değerine göre karıştır
+	                    int bgColor = pixels[dp + x];
+	                    int bgR = (bgColor >> 16) & 0xff;
+	                    int bgG = (bgColor >> 8) & 0xff;
+	                    int bgB = bgColor & 0xff;
+	                    
+	                    int newR = (blendR * a + bgR * (255 - a)) / 255;
+	                    int newG = (blendG * a + bgG * (255 - a)) / 255;
+	                    int newB = (blendB * a + bgB * (255 - a)) / 255;
+	                    
+	                    pixels[dp + x] = 0xff000000 | (newR << 16) | (newG << 8) | newB;
+	                }
+	            }
+	        }
+	    } else {
+	        for (int y = y0; y < y1; y++) {
+	            int sp = (y - yp) * b.w - xp;
+	            int dp = y * w;
+
+	            for (int x = x0; x < x1; x++) {
+	                int c = b.pixels[sp + x];
+	                int a = (c >> 24) & 0xff;
+	                
+	                if (a > 0) {
+	                    int srcR = (c >> 16) & 0xff;
+	                    int srcG = (c >> 8) & 0xff;
+	                    int srcB = c & 0xff;
+	                    
+	                    // Kaynak ve col değerini karıştır
+	                    int blendR = (srcR + colR) / 2;
+	                    int blendG = (srcG + colG) / 2;
+	                    int blendB = (srcB + colB) / 2;
+	                    
+	                    // Mevcut piksel ile alfa değerine göre karıştır
+	                    int bgColor = pixels[dp + x];
+	                    int bgR = (bgColor >> 16) & 0xff;
+	                    int bgG = (bgColor >> 8) & 0xff;
+	                    int bgB = bgColor & 0xff;
+	                    
+	                    int newR = (blendR * a + bgR * (255 - a)) / 255;
+	                    int newG = (blendG * a + bgG * (255 - a)) / 255;
+	                    int newB = (blendB * a + bgB * (255 - a)) / 255;
+	                    
+	                    pixels[dp + x] = 0xff000000 | (newR << 16) | (newG << 8) | newB;
+	                }
+	            }
+	        }
+	    }
+	}
+
+	// Düzeltilmiş blendFill metodu
+	public void blendFill(int x0, int y0, int x1, int y1, int color) {
+	    x0 += xOffs;
+	    y0 += yOffs;
+	    x1 += xOffs;
+	    y1 += yOffs;
+	    if (x0 < 0) x0 = 0;
+	    if (y0 < 0) y0 = 0;
+	    if (x1 >= w) x1 = w - 1;
+	    if (y1 >= h) y1 = h - 1;
+	    
+	    // color renginin bileşenlerini ve alfa değerini çıkar
+	    int a = (color >> 24) & 0xff;
+	    int srcR = (color >> 16) & 0xff;
+	    int srcG = (color >> 8) & 0xff;
+	    int srcB = color & 0xff;
+	    
+	    // Alfa değeri belirtilmemişse (0 ise), tamamen opak kabul et
+	    if (a == 0) a = 255;
+	    
+	    for (int y = y0; y <= y1; y++) {
+	        for (int x = x0; x <= x1; x++) {
+	            int bgColor = pixels[x + y * w];
+	            int bgR = (bgColor >> 16) & 0xff;
+	            int bgG = (bgColor >> 8) & 0xff;
+	            int bgB = bgColor & 0xff;
+	            
+	            int newR = (srcR * a + bgR * (255 - a)) / 255;
+	            int newG = (srcG * a + bgG * (255 - a)) / 255;
+	            int newB = (srcB * a + bgB * (255 - a)) / 255;
+	            
+	            pixels[x + y * w] = 0xff000000 | (newR << 16) | (newG << 8) | newB;
+	        }
+	    }
+	}
+
+	// Düzeltilmiş fogBlend metodu
+	public void fogBlend(Bitmap b, int xp, int yp) {
+	    xp += xOffs;
+	    yp += yOffs;
+	    int x0 = xp;
+	    int x1 = xp + b.w;
+	    int y0 = yp;
+	    int y1 = yp + b.h;
+	    if (x0 < 0) x0 = 0;
+	    if (y0 < 0) y0 = 0;
+	    if (x1 > w) x1 = w;
+	    if (y1 > h) y1 = h;
+
+	    for (int y = y0; y < y1; y++) {
+	        int sp = (y - yp) * b.w - xp;
+	        int dp = y * w;
+
+	        for (int x = x0; x < x1; x++) {
+	            int c = b.pixels[sp + x];
+	            // Eğer piksel şeffaf değilse işleme devam et
+	            if (c != 0) {
+	                // Alfa değerini al (0-255 arası)
+	                int fogIntensity = c & 0xff;
+	                // Sis yoğunluğu değeri olmadığında işlem yapma
+	                if (fogIntensity > 0) {
+	                    int bgColor = pixels[dp + x];
+	                    int bgR = (bgColor >> 16) & 0xff;
+	                    int bgG = (bgColor >> 8) & 0xff;
+	                    int bgB = bgColor & 0xff;
+	                    
+	                    // Gri tonu hesapla
+	                    int gray = (bgR * 30 + bgG * 59 + bgB * 11) / 100;
+	                    
+	                    // Sis yoğunluğuna göre karışım hesapla
+	                    // fogIntensity ne kadar yüksekse o kadar sis efekti olacak
+	                    int ic = 255 - fogIntensity;
+	                    
+	                    int newR = (bgR * ic + gray * fogIntensity) / 255;
+	                    int newG = (bgG * ic + gray * fogIntensity) / 255;
+	                    int newB = (bgB * ic + gray * fogIntensity) / 255;
+	                    
+	                    pixels[dp + x] = 0xff000000 | (newR << 16) | (newG << 8) | newB;
+	                }
+	            }
+	        }
+	    }
 	}
 
 	public void clear(int color) {
@@ -284,23 +466,6 @@ public class Bitmap implements java.io.Serializable{
 			}
 		}
 	}
-	
-	public void blendFill(int x0, int y0, int x1, int y1, int color) {
-		x0 += xOffs;
-		y0 += yOffs;
-		x1 += xOffs;
-		y1 += yOffs;
-		if (x0 < 0) x0 = 0;
-		if (y0 < 0) y0 = 0;
-		if (x1 >= w) x1 = w - 1;
-		if (y1 >= h) y1 = h - 1;
-		for (int y = y0; y <= y1; y++) {
-			for (int x = x0; x <= x1; x++) {
-				int col = pixels[x + y * w];
-				pixels[x + y * w] = (col & 0xfefefefe) + (color & 0xfefefefe) >> 1;
-			}
-		}
-	}
 
 	public void box(int x0, int y0, int x1, int y1, int color) {
 		x0 += xOffs;
@@ -326,80 +491,74 @@ public class Bitmap implements java.io.Serializable{
 			}
 		}
 	}
-
-	public void blend(Bitmap b, int xp, int yp) {
-		xp += xOffs;
-		yp += yOffs;
-		int x0 = xp;
-		int x1 = xp + b.w;
-		int y0 = yp;
-		int y1 = yp + b.h;
-		if (x0 < 0) x0 = 0;
-		if (y0 < 0) y0 = 0;
-		if (x1 > w) x1 = w;
-		if (y1 > h) y1 = h;
-
-		for (int y = y0; y < y1; y++) {
-			int sp = (y - yp) * b.w - xp;
-			int dp = (y) * w;
-
-			for (int x = x0; x < x1; x++) {
-				int c = b.pixels[sp + x];
-				int a = (c >> 24) & 0xff;
-				if (a != 0) {
-					int ia = 255 - a;
-
-					int rr = (pixels[dp + x] >> 16) & 0xff;
-					int gg = (pixels[dp + x] >> 8) & 0xff;
-					int bb = (pixels[dp + x]) & 0xff;
-
-					int ir = ((x ^ y) & 1) * 10 + 10;
-					int ig = ir;
-					int ib = ir;
-
-					rr = (rr * ia + ir * a) / 255;
-					gg = (gg * ia + ig * a) / 255;
-					bb = (bb * ia + ib * a) / 255;
-
-					pixels[dp + x] = 0xff000000 | rr << 16 | gg << 8 | bb;
-				}
-			}
-		}
+	
+	public void fillPolygon(int[] xPoints, int[] yPoints, int nPoints, int color) {
+	    // Apply offsets
+	    int[] xp = new int[nPoints];
+	    int[] yp = new int[nPoints];
+	    for (int i = 0; i < nPoints; i++) {
+	        xp[i] = xPoints[i] + xOffs;
+	        yp[i] = yPoints[i] + yOffs;
+	    }
+	    
+	    // Find the bounding box of the polygon
+	    int minX = Integer.MAX_VALUE;
+	    int maxX = Integer.MIN_VALUE;
+	    int minY = Integer.MAX_VALUE;
+	    int maxY = Integer.MIN_VALUE;
+	    
+	    for (int i = 0; i < nPoints; i++) {
+	        minX = Math.min(minX, xp[i]);
+	        maxX = Math.max(maxX, xp[i]);
+	        minY = Math.min(minY, yp[i]);
+	        maxY = Math.max(maxY, yp[i]);
+	    }
+	    
+	    // Clip to bitmap boundaries
+	    minX = Math.max(0, minX);
+	    minY = Math.max(0, minY);
+	    maxX = Math.min(w - 1, maxX);
+	    maxY = Math.min(h - 1, maxY);
+	    
+	    // Scan each row within bounding box
+	    for (int y = minY; y <= maxY; y++) {
+	        // Find intersections with polygon edges for this scanline
+	        List<Integer> intersections = new ArrayList<>();
+	        
+	        for (int i = 0; i < nPoints; i++) {
+	            int j = (i + 1) % nPoints; // Next vertex
+	            
+	            // Skip horizontal edges
+	            if (yp[i] == yp[j]) continue;
+	            
+	            // Check if the edge crosses this scanline
+	            if ((yp[i] <= y && y < yp[j]) || (yp[j] <= y && y < yp[i])) {
+	                // Calculate x-coordinate of intersection
+	                int x = xp[i] + (y - yp[i]) * (xp[j] - xp[i]) / (yp[j] - yp[i]);
+	                intersections.add(x);
+	            }
+	        }
+	        
+	        // Sort intersections by x-coordinate
+	        Collections.sort(intersections);
+	        
+	        // Fill pixels between intersection pairs
+	        for (int i = 0; i < intersections.size(); i += 2) {
+	            if (i + 1 < intersections.size()) {
+	                int startX = Math.max(minX, intersections.get(i));
+	                int endX = Math.min(maxX, intersections.get(i + 1));
+	                
+	                // Fill the span
+	                for (int x = startX; x <= endX; x++) {
+	                    pixels[y * w + x] = color;
+	                }
+	            }
+	        }
+	    }
 	}
 
-	public void fogBlend(Bitmap b, int xp, int yp) {
-		xp += xOffs;
-		yp += yOffs;
-		int x0 = xp;
-		int x1 = xp + b.w;
-		int y0 = yp;
-		int y1 = yp + b.h;
-		if (x0 < 0) x0 = 0;
-		if (y0 < 0) y0 = 0;
-		if (x1 > w) x1 = w;
-		if (y1 > h) y1 = h;
-
-		for (int y = y0; y < y1; y++) {
-			int sp = (y - yp) * b.w - xp;
-			int dp = (y) * w;
-
-			for (int x = x0; x < x1; x++) {
-				int c = b.pixels[sp + x];
-				if (c != 0) {
-					c = c & 0xff;
-					int ic = 255 - c;
-					int rr = (pixels[dp + x] >> 16) & 0xff;
-					int gg = (pixels[dp + x] >> 8) & 0xff;
-					int bb = (pixels[dp + x]) & 0xff;
-					int gray = (rr * 30 + gg * 59 + bb * 11) / 255;
-
-					rr = (rr * c + gray * ic) / 255;
-					gg = (gg * c + gray * ic) / 255;
-					bb = (bb * c + gray * ic) / 255;
-
-					pixels[dp + x] = 0xff000000 | rr << 16 | gg << 8 | bb;
-				}
-			}
-		}
+	// Convenience overload that takes exactly 3 points (for triangles)
+	public void fillPolygon(int[] xPoints, int[] yPoints, int color) {
+	    fillPolygon(xPoints, yPoints, xPoints.length, color);
 	}
 }
