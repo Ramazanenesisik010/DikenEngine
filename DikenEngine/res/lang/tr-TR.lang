@@ -25,10 +25,7 @@ legacycrash.title=DikenEngine Çöktü!
 legacycrash.issusegithub=Lütfen bu sorunu GitHub üzerinden bildirin.
 legacycrash.exit=Motordan Çıkmak İçin ALT+F4 Tuşlarına Basın.
 
-dmainmenu.performancetest=Performans Testi
+dmainmenu.editor=DikenEditor'u Aç
 dmainmenu.soundtest=Ses Testi
 dmainmenu.setting=Ayarlar
 dmainmenu.exit=Oyundan Çık
-
-performance.loadimg=Resim Yükle
-performance.imgremovealpha=Şeffaflığı Kaldır

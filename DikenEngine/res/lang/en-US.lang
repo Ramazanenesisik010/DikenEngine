@@ -25,10 +25,7 @@ legacycrash.title=DikenEngine Crashed!
 legacycrash.issusegithub=Please report this issue on GitHub.
 legacycrash.exit=Press ALT+F4 to exit the engine.
 
-dmainmenu.performancetest=Performance Test
+dmainmenu.editor=Open DikenEditor
 dmainmenu.soundtest=Sound Test
 dmainmenu.setting=Settings
 dmainmenu.exit=Exit Game
-
-performance.loadimg=Load Image
-performance.imgremovealpha=Remove Alpha
