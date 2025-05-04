@@ -12,6 +12,8 @@ public class Bitmap implements IResource {
 	public int xOffs;
 	public int yOffs;
 	public boolean xFlip = false;
+	
+	public static final Bitmap empty = new Bitmap(1, 1);
 
 	public Bitmap(int w, int h) {
 		this.w = w;

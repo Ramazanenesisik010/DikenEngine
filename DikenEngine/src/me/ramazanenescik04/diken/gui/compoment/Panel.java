@@ -20,6 +20,10 @@ public class Panel extends GuiCompoment {
 	}
 	
 	public void addCompoment(GuiCompoment compoment) {
+		if (compoment instanceof Panel) {
+			Panel panel = (Panel) compoment;
+			panel.init(DikenEngine.getEngine());
+		}
 		this.compoments.add(compoment);
 	}
 	

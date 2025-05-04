@@ -18,10 +18,10 @@ public class InputHandler {
 	 * @return The mouse hitbox.
 	 */
 	public static Hitbox getMouseHitbox() {
-		DikenEngine engine = DikenEngine.getEngine();
+		/*DikenEngine engine = DikenEngine.getEngine();
 		int mouseX = (int) (Mouse.getX() / engine.scale);
 		int mouseY = (int) (engine.getHeight() - (Mouse.getY() / engine.scale));
-		mouseHitbox.setLocation(mouseX, mouseY);
+		mouseHitbox.setLocation(mouseX, mouseY);*/
 		return mouseHitbox;
 	}
 	
@@ -48,5 +48,17 @@ public class InputHandler {
 		int mouseX = (int) (Mouse.getX() / engine.scale);
 		int mouseY = (int) (engine.getHeight() - (Mouse.getY() / engine.scale));
 		mousePosition.setLocation(mouseX, mouseY);
+		mouseHitbox.setLocation(mouseX, mouseY);
+	}
+	
+	/**
+	 * Farenin Pencere içinde mi yoksa beaşka terdemi olduğunu söyler.
+	 * 
+	 * @see org.lwjgl.input.Mouse#isInsideWindow()
+	 * 
+	 * @return mouse on screen
+	 */
+	public static boolean isMouseOnScreen() {
+		return Mouse.isInsideWindow();
 	}
 }

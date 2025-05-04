@@ -3,14 +3,11 @@ package me.ramazanenescik04.diken;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,7 +28,10 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 
 import me.ramazanenescik04.diken.game.Config;
+import me.ramazanenescik04.diken.game.DevGame;
+import me.ramazanenescik04.diken.game.GameLoader;
 import me.ramazanenescik04.diken.game.IGame;
+import me.ramazanenescik04.diken.game.TestGame;
 import me.ramazanenescik04.diken.gui.UniFont;
 import me.ramazanenescik04.diken.gui.screen.*;
 import me.ramazanenescik04.diken.resource.ArrayBitmap;
@@ -40,14 +40,13 @@ import me.ramazanenescik04.diken.resource.EnumResource;
 import me.ramazanenescik04.diken.resource.IOResource;
 import me.ramazanenescik04.diken.resource.IResource;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
+import me.ramazanenescik04.diken.tools.*;
 
 /**Bu sınıf Diken Engine'in ana sınıfıdır. Bu sınıf, LWJGL kütüphanesini kullanarak oyun motorunu başlatır ve çalıştırır. 
  * @author Ramazanenescik04*/
 public class DikenEngine implements Runnable {
-	public static final String VERSION = "0.7.1 Prerelease 1";
-	public static final int protocolVersion = 1;
-	
-	public static final String USAGE = "DikenEngine -game \"gameFileName\"";
+	public static final String VERSION = "0.7.1 Prerelease 2";
+	public static final int protocolVersion = 2;
 	
 	public Canvas canvas;
 	public int width;
@@ -69,7 +68,7 @@ public class DikenEngine implements Runnable {
 	
 	public UniFont defaultFont;
 	
-	public Config gManager;
+	public Config config;
 	
 	/** Şu Anki Ekran */
 	private Screen currentScreen;
@@ -91,7 +90,7 @@ public class DikenEngine implements Runnable {
 		this.height = scaleHeight;
 		this.fullscreen = fullscreen;
 		
-		gManager = new Config();
+		config = new Config();
 		
 		instance = this;
 	}
@@ -196,66 +195,80 @@ public class DikenEngine implements Runnable {
 		object = new DikenEngine(null, w, h, s, fullscreen);
 		IGame game = new TestGame();
 		
+		File autoLoadGame = new File("./algame.txt");
+		String[] alData = FileUtils.readFileArray(autoLoadGame);
+		if (alData.length == 0) {
+			alData = new String[] {""};
+		}
+		String gameName = alData[0];
+		
 		/** Oyun Yükleme */
-		loadGame:{
-			if (argMap.containsKey("-game")) {
-				String gameName = (String) argMap.get("-game");
-				
-				if (!gameName.equals("null")) {
-					File gameFileLocation = new File("./game/" + gameName + ".jar");
-					
-					if(!gameFileLocation.exists() && gameFileLocation.isDirectory()) {
-						String error = "Oyun Dosyası Mevcut Değil.";
-						
-						errorLog(error);
-						JOptionPane.showMessageDialog(null, error, "DikenEngine - Hata!", JOptionPane.ERROR_MESSAGE);
-						
-						System.exit(0);
-					}
-					
-					try {
-						// Teşekküller DeepSeek
-						
-						//Class Konumunu Elde Etmek
-						JarFile jFile = new JarFile(gameFileLocation);
-						Attributes a = jFile.getManifest().getMainAttributes();
-						String classPath = a.getValue(new Attributes.Name("Game-Class"));
-						jFile.close();
-						
-						if (classPath == null) {
-							break loadGame;
-						}
-						
-						//URLClassLoader ile class'ı Yüklemek
-						URLClassLoader loader = new URLClassLoader(new URL[] {gameFileLocation.toURI().toURL()});
-						Class<?> gameClass = loader.loadClass(classPath);
-						loader.close();
-						
-						//Obje IGame'mi kontrolü
-						Object unkdownObject = gameClass.getConstructor().newInstance();
-						
-						if (unkdownObject instanceof IGame) {
-							game = (IGame) unkdownObject;
-						} else {
-							break loadGame;
-						}
-					} catch (Exception e) {
-						StringWriter sw = new StringWriter();
-				        PrintWriter pw = new PrintWriter(sw);
-						e.printStackTrace(pw);
-						JOptionPane.showMessageDialog(null, sw.toString() + "\nOyun Yüklenemedi!", "DikenEngine - Hata!", JOptionPane.ERROR_MESSAGE);
-						e.printStackTrace();
-					}
-				}
-			}
+		if (argMap.containsKey("-game")) {
+			gameName = (String) argMap.get("-game");
 		}
 		
+		log("Loading Game: " + gameName);
+		
+		game = loadGameAAA(gameName);
 		game.loadAdvancedNative();
 		game.loadNatives();
 		game.loadResources();
 		game.startGame(object);
 		
 		return object;
+	}
+	
+	private static IGame loadGameAAA(String gameName) {
+		if (!gameName.equals("null") && !gameName.isEmpty()) {
+			if (gameName.equals("dev")) {
+				return new DevGame();
+			}
+			
+			File gameFileLocation = new File("./game/" + gameName + ".jar");
+			
+			if(!gameFileLocation.exists() && gameFileLocation.isDirectory()) {
+				String error = "Oyun Dosyası Mevcut Değil.";
+				
+				errorLog(error);
+				JOptionPane.showMessageDialog(null, error, "DikenEngine - Hata!", JOptionPane.ERROR_MESSAGE);
+				
+				System.exit(0);
+			}
+			
+			try {
+				// Teşekküller DeepSeek
+				
+				//Class Konumunu Elde Etmek
+				JarFile jFile = new JarFile(gameFileLocation);
+				Attributes a = jFile.getManifest().getMainAttributes();
+				String classPath = a.getValue(new Attributes.Name("Game-Class"));
+				jFile.close();
+				
+				if (classPath == null) {
+					errorLog("classPath == null");
+					return new TestGame();
+				}
+				
+				return GameLoader.loadGame(new URL[] {gameFileLocation.toURI().toURL()}, classPath);
+			} catch (Exception e) {
+				StringWriter sw = new StringWriter();
+		        PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+				JOptionPane.showMessageDialog(null, sw.toString() + "\nOyun Yüklenemedi!", "DikenEngine - Hata!", JOptionPane.ERROR_MESSAGE);
+				e.printStackTrace();
+				return new TestGame();
+			}
+		}
+		return new TestGame();
+	}
+	
+	public static void startTestGame(IGame game) {
+		DikenEngine engine = new DikenEngine(null, 320, 240, false);
+		game.loadAdvancedNative();
+		game.loadNatives();
+		game.loadResources();
+		game.startGame(engine);
+		engine.start();
 	}
 	
 	private static void loadLocalNatives() {
@@ -344,7 +357,7 @@ public class DikenEngine implements Runnable {
 	/** Bu Kodu Şöyle Başlat: new Thread(dikenengine).start(); */
 	public void run() {
 		try {
-			DikenEngine.log("Diken Engine " + VERSION + " Starting...");	
+			DikenEngine.log("DikenEngine " + VERSION + " Starting...");	
 			
 			defaultFont = UniFont.getFont("default_font");
 			
@@ -371,7 +384,7 @@ public class DikenEngine implements Runnable {
 			} else {
 				Display.setDisplayMode(new DisplayMode(this.width, this.height));
 			}
-			Display.setTitle("Diken Engine " + VERSION);
+			Display.setTitle(this.config.getOrDefault("title", "DikenEngine " + VERSION));
 			Display.setResizable(true);
 			Display.create();
 			
@@ -488,7 +501,7 @@ public class DikenEngine implements Runnable {
 				currentScreen.closeScreen();
 			}
 			
-			gManager.saveConfig();
+			config.saveConfig();
 			
 			SoundManager.destroy();
 			
@@ -521,6 +534,7 @@ public class DikenEngine implements Runnable {
 					screenshotBitmap.draw(_screenshotBitmap, 0, 0);
 					try {
 						Date date = new Date();
+						@SuppressWarnings("deprecation")
 						String fileName = "screenshot-" + date.toLocaleString().replaceAll(" ", "_").replaceAll(":", "-") + ".png";
 						ImageIO.write(screenshotBitmap.toImage(), "png", new File(fileName));
 						log("Screenshot saved as " + fileName);

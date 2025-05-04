@@ -9,8 +9,8 @@ import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.util.WaveData;
 
-import me.ramazanenescik04.diken.resource.IResource;
-import me.ramazanenescik04.diken.resource.sound.WaveSoundResource;
+import me.ramazanenescik04.diken.resource.*;
+import me.ramazanenescik04.diken.resource.sound.*;
 
 public class SoundManager {	
 	private static List<Integer> soundIDs = new ArrayList<Integer>();
@@ -35,7 +35,6 @@ public class SoundManager {
 		if (!AL.isCreated()) {
 			init();
 		}
-		
 		WaveData data = WaveData.create(stream);
 		int bufferID = AL10.alGenBuffers();
 		AL10.alBufferData(bufferID, data.format, data.data, data.samplerate);
@@ -43,8 +42,7 @@ public class SoundManager {
 		
 		int sourceID = AL10.alGenSources();
 		AL10.alSourcei(sourceID, AL10.AL_BUFFER, bufferID);
-		WaveSoundResource soundResource = new WaveSoundResource(sourceID);
+		SoundResource soundResource = new WaveSoundResource(sourceID);
 		return soundResource;
 	}
-
 }

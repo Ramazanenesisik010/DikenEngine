@@ -51,10 +51,9 @@ public class DefaultMainMenuScreen extends Screen {
 
 	public void openScreen() {		
 		ArrayBitmap icon = (ArrayBitmap) ResourceLocator.getResource("bgd-tiles");
-		clearGuiObjects();
 		DMMPanel panel = new DMMPanel(engine.getWidth(), engine.getHeight());
 		panel.setBackground(new DownBackground(icon.bitmap[0][0]));		
-		addGuiObject(panel);
+		this.setContentPane(panel);
 	}
 	
 	public void closeScreen() {

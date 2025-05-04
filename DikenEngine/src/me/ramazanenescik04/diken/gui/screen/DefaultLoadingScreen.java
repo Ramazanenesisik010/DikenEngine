@@ -4,7 +4,7 @@ import me.ramazanenescik04.diken.gui.compoment.Text;
 import me.ramazanenescik04.diken.resource.*;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
 
-public class DefaultLoadingScreen extends LoadingScreen {
+public class DefaultLoadingScreen extends Screen {
 
 	public void render(Bitmap screen) {
 		super.render(screen);

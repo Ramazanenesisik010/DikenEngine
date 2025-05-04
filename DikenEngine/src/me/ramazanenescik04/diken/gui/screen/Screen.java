@@ -13,7 +13,8 @@ import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
 public abstract class Screen {
-	private List<GuiCompoment> guiObjects = new ArrayList<>();
+	//private List<GuiCompoment> guiObjects = new ArrayList<>();
+	private Panel contentPane = new Panel(0, 0, 1, 1);
 	public DikenEngine engine;
 	
 	private IBackground background;
@@ -24,9 +25,8 @@ public abstract class Screen {
 			background.tick();
 		}
 		
-		for (GuiCompoment guiObject : guiObjects) {
-			guiObject.tick(engine);
-		}
+		contentPane.setSize(engine.getWidth(), engine.getHeight());
+		contentPane.tick(engine);
 	}
 	
 	public void keyboardEveent() {
@@ -34,9 +34,7 @@ public abstract class Screen {
 	}
 
 	public void keyDown(char eventCharacter, int eventKey) {
-		for (GuiCompoment guiObject : guiObjects) {
-			guiObject.keyPressed(eventCharacter, eventKey);
-		}
+		contentPane.keyPressed(eventCharacter, eventKey);
 	}
 	
 	public void mouseClickEvent() {
@@ -46,54 +44,7 @@ public abstract class Screen {
 	}
 
 	private void mouseClick(int mouseX, int mouseY, int eventButton) {
-		for (int i = 0; i < guiObjects.size(); i++) {
-			GuiCompoment guiObject = guiObjects.get(i);
-			boolean isTouch = false;
-			if (guiObject.intersects(InputHandler.getMouseHitbox())) {
-				isTouch = true;
-			}
-			guiObject.mouseClicked(mouseX, mouseY, eventButton, isTouch);
-		}
-	}
-	
-	public void addGuiObject(GuiCompoment guiObject) {
-		if (guiObject == null) {
-			return;
-		}
-		
-		if (guiObject instanceof Panel) {
-			Panel panel = (Panel) guiObject;
-			panel.init(this.engine);
-		}
-		guiObjects.add(guiObject);
-	}
-	
-	public void removeGuiObject(GuiCompoment guiObject) {
-		if (guiObject == null) {
-			return;
-		}
-		
-		guiObjects.remove(guiObject);
-	}
-	
-	public void removeGuiObject(int index) {
-		if (index < 0 || index >= guiObjects.size()) {
-			return;
-		}
-		
-		guiObjects.remove(index);
-	}
-	
-	public GuiCompoment getGuiObject(int index) {
-		if (index < 0 || index >= guiObjects.size()) {
-			return null;
-		}
-		
-		return guiObjects.get(index);
-	}
-	
-	public void clearGuiObjects() {
-		guiObjects.clear();
+		contentPane.mouseClicked(mouseX, mouseY, eventButton, InputHandler.isMouseOnScreen());
 	}
 	
 	public void openScreen() {
@@ -107,9 +58,7 @@ public abstract class Screen {
 			background.render(bitmap);
 		}
 		
-		for (GuiCompoment guiObject : guiObjects) {
-			bitmap.draw(guiObject.render(), guiObject.x, guiObject.y);
-		}
+		bitmap.draw(contentPane.render(), contentPane.x, contentPane.y);
 	}
 	
 	public void setBackground(IBackground background) {
@@ -120,14 +69,7 @@ public abstract class Screen {
 		int mouseX = (int) (Mouse.getEventX() / engine.scale);
 		int mouseY = (int) (engine.getHeight() - (Mouse.getEventY() / engine.scale));
 		
-		for (int i = 0; i < guiObjects.size(); i++) {
-			GuiCompoment guiObject = guiObjects.get(i);
-			boolean isTouch = false;
-			if (guiObject.intersects(InputHandler.getMouseHitbox())) {
-				isTouch = true;
-			}
-			guiObject.mouseGetInfo(mouseX, mouseY, isTouch);
-		}
+		contentPane.mouseGetInfo(mouseX, mouseY, true);
 	}
 
 	public void mouseEvent() {
@@ -136,6 +78,18 @@ public abstract class Screen {
 		if (Mouse.getEventButtonState()) {
 			mouseClickEvent();
 		}
+	}
+	
+	public Panel getContentPane() {
+		return contentPane;
+	}
+	
+	public void setContentPane(Panel panel) {
+		if (panel == null)
+			return;
+		
+		panel.init(engine);
+		this.contentPane = panel;
 	}
 
 }

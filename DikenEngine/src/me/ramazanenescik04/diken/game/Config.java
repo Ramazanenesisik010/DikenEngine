@@ -13,7 +13,7 @@ import me.ramazanenescik04.diken.DikenEngine;
 
 public class Config {
 	
-	public volatile Properties config;
+	private volatile Properties config;
 	public static final Properties defaultConfig = new Properties();
 	public static final File defaultConfigFile = new File("./config.dat");
 
@@ -83,5 +83,21 @@ public class Config {
 	
 	public void saveConfig() {
 		this.saveConfig(defaultConfigFile);
+	}
+	
+	public String getProperty(String key) {
+		return this.config.getProperty(key);
+	}
+	
+	public String getOrDefault(String key, String defaultValue) {
+		return (String) this.config.getOrDefault(key, defaultValue);
+	}
+	
+	public void getProperty(String key, String value) {
+		this.config.setProperty(key, value);
+	}
+	
+	public Properties getConfig() {
+		return this.config;
 	}
 }
