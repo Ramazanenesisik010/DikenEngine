@@ -93,7 +93,7 @@ public class Config {
 		return (String) this.config.getOrDefault(key, defaultValue);
 	}
 	
-	public void getProperty(String key, String value) {
+	public void setProperty(String key, String value) {
 		this.config.setProperty(key, value);
 	}
 	

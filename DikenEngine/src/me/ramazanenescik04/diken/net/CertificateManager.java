@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import javax.net.ssl.*;
 
 public class CertificateManager {
-	private static ArrayList<SSLSocketFactory> loadedSSLs = new ArrayList<>();
+	private static ArrayList<SSLContext> loadedSSLs = new ArrayList<>();
 	
-	public static SSLSocketFactory createCustomSSLSocketFactory(String certPath) throws Exception {
+	public static SSLContext createCustomSSLContext(String certPath) throws Exception {
 	    // 1. Sistem varsayılan truststore'unu yükle
 	    KeyStore defaultKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
 	    try (FileInputStream fis = new FileInputStream(System.getProperty("java.home") + "/lib/security/cacerts")) {
@@ -29,9 +29,8 @@ public class CertificateManager {
 	    // 4. SSLContext'i özelleştir
 	    SSLContext sslContext = SSLContext.getInstance("TLS");
 	    sslContext.init(null, tmf.getTrustManagers(), null);
-	    SSLSocketFactory aaa = sslContext.getSocketFactory();
-	    add(aaa);
-	    return aaa;
+	    add(sslContext);
+	    return sslContext;
 	}
 
 	public static X509Certificate loadCertificate(String filePath) throws Exception {
@@ -41,7 +40,7 @@ public class CertificateManager {
 	    }
 	}
 	
-	public static SSLSocketFactory getCerf(int id) {
+	public static SSLContext getCerf(int id) {
 		return loadedSSLs.get(id);
 	}
 	
@@ -49,11 +48,15 @@ public class CertificateManager {
 		return loadedSSLs.size();
 	}
 	
-	public static void add(SSLSocketFactory a) {
+	public static void add(SSLContext a) {
 		loadedSSLs.add(a);
 	}
 	
 	public static void delete(int id) {
 		loadedSSLs.remove(id);
+	}
+	
+	public static SSLSocketFactory getSSLSocketFactory(SSLContext e) {
+		return e.getSocketFactory();
 	}
 }

@@ -7,9 +7,9 @@ import java.net.URLClassLoader;
 import me.ramazanenescik04.diken.DikenEngine;
 
 public class GameLoader {
-	private static URLClassLoader loader;
+	private URLClassLoader loader;
 	
-	public static IGame loadGame(URL[] urls, String classPath) {
+	public IGame loadGame(URL[] urls, String classPath) {
 		try {
 			if (loader != null) {
 				loader.close();
@@ -36,7 +36,7 @@ public class GameLoader {
 		}
 	}
 	
-	public static void close() {
+	public void close() {
 		if (loader != null)
 			try {
 				loader.close();

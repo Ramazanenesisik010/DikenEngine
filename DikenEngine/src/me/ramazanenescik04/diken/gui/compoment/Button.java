@@ -1,8 +1,6 @@
 package me.ramazanenescik04.diken.gui.compoment;
 
 import me.ramazanenescik04.diken.DikenEngine;
-import me.ramazanenescik04.diken.InputHandler;
-import me.ramazanenescik04.diken.gui.Hitbox;
 import me.ramazanenescik04.diken.resource.ArrayBitmap;
 import me.ramazanenescik04.diken.resource.Bitmap;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
@@ -103,7 +101,7 @@ public class Button extends GuiCompoment {
 	}
 
 	public void mouseClicked(int x, int y, int button, boolean isTouch) {
-		if (isTouch) {
+		if (isTouch || isTouching) {
 			if (button == 0 && runnable != null) {
 				runnable.run();
 			}

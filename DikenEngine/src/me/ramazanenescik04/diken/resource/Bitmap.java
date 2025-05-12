@@ -604,4 +604,10 @@ public class Bitmap implements IResource {
 	public int getPixel(int srcX, int srcY) {
 		return pixels[srcX + srcY * w];
 	}
+
+	public static Bitmap createClearedBitmap(int i, int j, int k) {
+		Bitmap bitmap = new Bitmap(i, j);
+		bitmap.clear(k);
+		return bitmap;
+	}
 }

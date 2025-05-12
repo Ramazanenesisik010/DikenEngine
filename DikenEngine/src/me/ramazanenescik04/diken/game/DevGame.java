@@ -9,14 +9,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-import org.json.JSONObject;
-
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.gui.compoment.Button;
 import me.ramazanenescik04.diken.gui.compoment.Text;
+import me.ramazanenescik04.diken.gui.screen.GuiEditorScreen;
 import me.ramazanenescik04.diken.gui.screen.Screen;
-import me.ramazanenescik04.diken.net.CertificateManager;
-import me.ramazanenescik04.diken.net.WebGet;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
 public class DevGame extends Screen implements IGame {
@@ -26,6 +23,10 @@ public class DevGame extends Screen implements IGame {
 	}
 	
 	public void openScreen() {
+		this.engine.setFullscreen(true);
+		
+		this.getContentPane().clearCompoments();
+		
 		this.getContentPane().addCompoment(new Button("addGamePath", 2, 2, 100, 20).setRunnable(() -> {
 			try {
 				JarFile jarFile = null;
@@ -94,6 +95,14 @@ public class DevGame extends Screen implements IGame {
 				} catch (IOException e) {
 					e.printStackTrace();
 			}
+		}));
+		
+		this.getContentPane().addCompoment(new Button("createProject", 2, 26, 100, 20).setRunnable(() -> {
+			
+		}));
+		
+		this.getContentPane().addCompoment(new Button("openGuiEditor", 2, 50, 100, 20).setRunnable(() -> {			
+			this.engine.setCurrentScreen(new GuiEditorScreen(this));
 		}));
 	}
 	

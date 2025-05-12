@@ -7,8 +7,7 @@ import me.ramazanenescik04.diken.DikenEngine;
 
 public class WebGet {
 	
-	public static String getHTTP(String url) {
-		StringBuilder result = new StringBuilder();
+	public static URLConnection getHTTP(String url) {
 		try {
 			URL urlObj = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
@@ -19,25 +18,19 @@ public class WebGet {
 			conn.connect();
 			DikenEngine.log("HTTPGet: Connected to URL: " + url);
 			
-			java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				result.append(inputLine);
-			}
-			in.close();
+			return conn;
 		} catch (Exception e) {
 			e.printStackTrace();
 			DikenEngine.log("HTTPGet-HTTP: ERROR: " + e.getMessage());
 		}
-		return result.toString();
+		return null;
 	}
 	
-	public static String getHTTPS(String url) {
+	public static URLConnection getHTTPS(String url) {
 		return getHTTPS(url, HttpsURLConnection.getDefaultSSLSocketFactory());
 	}
 	
-	public static String getHTTPS(String url, SSLSocketFactory cerf) {
-		StringBuilder result = new StringBuilder();
+	public static URLConnection getHTTPS(String url, SSLSocketFactory cerf) {
 		try {
 			URL urlObj = new URL(url);
 			HttpsURLConnection conn = (HttpsURLConnection) urlObj.openConnection();
@@ -49,7 +42,18 @@ public class WebGet {
 			conn.connect();
 			DikenEngine.log("HTTPGet: Connected to URL: " + url);
 			
-			java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+			return conn;
+		} catch (Exception e) {
+			e.printStackTrace();
+			DikenEngine.log("WebGet-HTTPS: ERROR: " + e.getMessage());
+		}
+		return null;
+	}
+	
+	public static String readInputStream(URLConnection c) {
+		StringBuilder result = new StringBuilder();
+		try {
+			java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream()));
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
 				result.append(inputLine);
@@ -57,9 +61,8 @@ public class WebGet {
 			in.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			DikenEngine.log("WebGet-HTTPS: ERROR: " + e.getMessage());
+			DikenEngine.log("WebGet-toString: ERROR: " + e.getMessage());
 		}
-		DikenEngine.log("WebGet-HTTPS: " + result.toString());
 		return result.toString();
 	}
 

@@ -52,6 +52,7 @@ public class TextField extends GuiCompoment {
 		counter++;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void keyPressed(char var1, int var2) {
 		UniFont defaultFont = DikenEngine.getEngine().defaultFont;
 		if (isFocused) {

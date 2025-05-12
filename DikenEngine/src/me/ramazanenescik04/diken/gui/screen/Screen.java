@@ -1,14 +1,10 @@
 package me.ramazanenescik04.diken.gui.screen;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.InputHandler;
-import me.ramazanenescik04.diken.gui.compoment.GuiCompoment;
 import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
@@ -36,12 +32,6 @@ public abstract class Screen {
 	public void keyDown(char eventCharacter, int eventKey) {
 		contentPane.keyPressed(eventCharacter, eventKey);
 	}
-	
-	public void mouseClickEvent() {
-		int mouseX = (int) (Mouse.getEventX() / engine.scale);
-		int mouseY = (int) (engine.getHeight() - (Mouse.getEventY() / engine.scale));
-		this.mouseClick(mouseX, mouseY, Mouse.getEventButton());
-	}
 
 	private void mouseClick(int mouseX, int mouseY, int eventButton) {
 		contentPane.mouseClicked(mouseX, mouseY, eventButton, InputHandler.isMouseOnScreen());
@@ -65,18 +55,15 @@ public abstract class Screen {
 		this.background = background;
 	}
 
-	private void mouseMovingEvent() {
-		int mouseX = (int) (Mouse.getEventX() / engine.scale);
-		int mouseY = (int) (engine.getHeight() - (Mouse.getEventY() / engine.scale));
-		
-		contentPane.mouseGetInfo(mouseX, mouseY, true);
-	}
 
 	public void mouseEvent() {
-		mouseMovingEvent();
+		int mouseX = InputHandler.getMousePosition().x;
+		int mouseY = InputHandler.getMousePosition().y;
+		
+		contentPane.mouseGetInfo(mouseX, mouseY, true);
 		
 		if (Mouse.getEventButtonState()) {
-			mouseClickEvent();
+			this.mouseClick(mouseX, mouseY, Mouse.getEventButton());
 		}
 	}
 	

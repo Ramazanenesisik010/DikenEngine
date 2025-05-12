@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL;
@@ -45,13 +47,17 @@ import me.ramazanenescik04.diken.tools.*;
 /**Bu sınıf Diken Engine'in ana sınıfıdır. Bu sınıf, LWJGL kütüphanesini kullanarak oyun motorunu başlatır ve çalıştırır. 
  * @author Ramazanenescik04*/
 public class DikenEngine implements Runnable {
-	public static final String VERSION = "0.7.1 Prerelease 2";
-	public static final int protocolVersion = 2;
+	public static final String VERSION = "0.7.1 Prerelease 3";
+	public static final int protocolVersion = 3;
 	
 	public Canvas canvas;
 	public int width;
 	public int height;
-	public boolean fullscreen;
+	private int tmpwidth;
+	private int tmpheight;
+	private boolean fullscreen;
+	private boolean tmpFullscreen;
+	private boolean isResizable = true;
 	public float scale = 1.0f;  // Ölçeklendirme faktörü
 	
 	private long lastFPSTime = 0;   // Son FPS hesaplama zamanı
@@ -69,17 +75,18 @@ public class DikenEngine implements Runnable {
 	public UniFont defaultFont;
 	
 	public Config config;
+	private static GameLoader loader = new GameLoader();
 	
 	/** Şu Anki Ekran */
 	private Screen currentScreen;
 	
 	private static DikenEngine instance;
 	
-	public DikenEngine(/*  Nullable */Canvas canvas, int width, int height, boolean fullscreen) {
-		this(canvas, width, height, 2.0f, fullscreen);
+	public DikenEngine(/*  Nullable */Canvas canvas, int width, int height) {
+		this(canvas, width, height, 2.0f);
 	}
 
-	public DikenEngine(/*  Nullable */Canvas canvas, int width, int height, float scale, boolean fullscreen) {
+	public DikenEngine(/*  Nullable */Canvas canvas, int width, int height, float scale) {
 		this.scale = scale;
 		
 		int scaleWidth = (int) (width * scale);
@@ -88,7 +95,9 @@ public class DikenEngine implements Runnable {
 		this.canvas = canvas;
 		this.width = scaleWidth;
 		this.height = scaleHeight;
-		this.fullscreen = fullscreen;
+		this.tmpwidth = scaleWidth;
+		this.tmpheight = scaleHeight;
+		this.fullscreen = false;
 		
 		config = new Config();
 		
@@ -185,14 +194,11 @@ public class DikenEngine implements Runnable {
 		}
 		
 		if (argMap.containsKey("-fullscreen")) {
-			String wStr = (String) argMap.get("-fullscreen");
-			
-			if (wStr != null && "true".equals(wStr)) {
-				fullscreen = true;
-			}
+			fullscreen = true;
 		}
 		
-		object = new DikenEngine(null, w, h, s, fullscreen);
+		object = new DikenEngine(null, w, h, s);
+		object.setFullscreen(fullscreen);
 		IGame game = new TestGame();
 		
 		File autoLoadGame = new File("./algame.txt");
@@ -218,6 +224,14 @@ public class DikenEngine implements Runnable {
 		return object;
 	}
 	
+	public void setFullscreen(boolean fullscreen2) {
+		this.fullscreen = fullscreen2;
+	}
+	
+	public void setResizable(boolean resizable) {
+		this.isResizable = resizable;
+	}
+
 	private static IGame loadGameAAA(String gameName) {
 		if (!gameName.equals("null") && !gameName.isEmpty()) {
 			if (gameName.equals("dev")) {
@@ -249,7 +263,7 @@ public class DikenEngine implements Runnable {
 					return new TestGame();
 				}
 				
-				return GameLoader.loadGame(new URL[] {gameFileLocation.toURI().toURL()}, classPath);
+				return loader.loadGame(new URL[] {gameFileLocation.toURI().toURL()}, classPath);
 			} catch (Exception e) {
 				StringWriter sw = new StringWriter();
 		        PrintWriter pw = new PrintWriter(sw);
@@ -263,7 +277,7 @@ public class DikenEngine implements Runnable {
 	}
 	
 	public static void startTestGame(IGame game) {
-		DikenEngine engine = new DikenEngine(null, 320, 240, false);
+		DikenEngine engine = new DikenEngine(null, 320, 240);
 		game.loadAdvancedNative();
 		game.loadNatives();
 		game.loadResources();
@@ -385,7 +399,7 @@ public class DikenEngine implements Runnable {
 				Display.setDisplayMode(new DisplayMode(this.width, this.height));
 			}
 			Display.setTitle(this.config.getOrDefault("title", "DikenEngine " + VERSION));
-			Display.setResizable(true);
+			Display.setResizable(isResizable);
 			Display.create();
 			
 			Mouse.create();
@@ -495,6 +509,25 @@ public class DikenEngine implements Runnable {
 						Display.sync(TARGET_FPS);
 					}
 				}
+				
+				tickDimension();
+				
+				IntBuffer viewport = BufferUtils.createIntBuffer(16);
+				GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
+				
+				int localWidth = viewport.get(2);
+				int localHeight = viewport.get(3);
+				
+				if (localWidth != width || localHeight != height) {
+					GL11.glViewport(0, 0, width, height);
+					
+					GL11.glMatrixMode(GL11.GL_PROJECTION);
+					GL11.glLoadIdentity();
+					GL11.glOrtho(0, width, height, 0, 1, -1);
+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
+					
+					this.refreshScreenBuffer();
+				}
 			}
 			
 			if (currentScreen != null) {
@@ -529,9 +562,9 @@ public class DikenEngine implements Runnable {
 		if(Keyboard.next()) {
 			if (Keyboard.getEventKeyState()) {
 				if (Keyboard.getEventKey() == Keyboard.KEY_F2) {
-					Bitmap _screenshotBitmap = screenBitmap.clone();
 					Bitmap screenshotBitmap = new Bitmap(getWidth(), getHeight());
-					screenshotBitmap.draw(_screenshotBitmap, 0, 0);
+					screenshotBitmap.clear(0xFF000000);
+					screenshotBitmap.draw(screenBitmap, 0, 0);
 					try {
 						Date date = new Date();
 						@SuppressWarnings("deprecation")
@@ -542,6 +575,9 @@ public class DikenEngine implements Runnable {
 						e.printStackTrace();
 						log("Screenshot failed to save.");
 					}
+				}
+				if (Keyboard.getEventKey() == Keyboard.KEY_F11) {
+					this.setFullscreen(!fullscreen);
 				}
 				if (currentScreen != null) {
 					currentScreen.keyboardEveent();
@@ -596,6 +632,104 @@ public class DikenEngine implements Runnable {
 
 	public final Screen getCurrentScreen() {
 		return this.currentScreen;
+	}
+	
+	/** Bu Kod, Ekranı Resize Edildiğinde Boyutunu Değiştirilir. 
+	 * @throws LWJGLException */
+	private void tickDimension() throws LWJGLException {
+		if (this.canvas != null) {
+			if (this.canvas.getWidth() != this.width || this.canvas.getHeight() != this.height) {
+				resize();
+			}
+		} else if (Display.wasResized()) {
+			resize();
+		} else if (this.tmpFullscreen != this.fullscreen) {
+			this.tmpFullscreen = this.fullscreen;
+			if (this.fullscreen)
+            {
+                Display.setDisplayMode(Display.getDesktopDisplayMode());
+                this.width = Display.getDisplayMode().getWidth();
+                this.height = Display.getDisplayMode().getHeight();
+
+                if (this.width <= 0)
+                {
+                    this.width = 1;
+                }
+
+                if (this.height <= 0)
+                {
+                    this.height = 1;
+                }
+            }
+            else
+            {
+                if (this.canvas != null)
+                {
+                    this.width = this.canvas.getWidth();
+                    this.height = this.canvas.getHeight();
+                }
+                else
+                {
+                    this.width = this.tmpwidth;
+                    this.height = this.tmpheight;
+                }
+
+                if (this.width <= 0)
+                {
+                    this.width = 1;
+                }
+
+                if (this.height <= 0)
+                {
+                    this.height = 1;
+                }
+            }
+			Display.setFullscreen(this.fullscreen);
+            Display.setVSyncEnabled(this.config.getProperty("sync").equals("true"));
+            Display.setResizable(this.isResizable);
+            Display.update();
+            
+            refreshScreenBuffer();
+		}
+	}
+	
+	private void refreshScreenBuffer() {
+		screenBitmap = new Bitmap(width, height);
+		screenBuffer = BufferUtils.createByteBuffer(screenBitmap.pixels.length * 4);
+	}
+
+	private void resize() throws LWJGLException {
+		if (this.canvas != null) {
+			this.width = this.canvas.getWidth();
+			this.height = this.canvas.getHeight();
+		} else {
+			this.width = Display.getWidth();
+			this.height = Display.getHeight();
+		}
+		
+		if (this.width <= 0) {
+			this.width = 1;
+		}
+
+		if (this.height <= 0) {
+			this.height = 1;
+		}
+		
+		refreshScreenBuffer();
+	}
+
+	public void setSize(int i, int j) {
+		this.width = i;
+		this.height = j;
+		
+		if (this.canvas != null) {
+			this.canvas.setSize(i, j);
+		}
+		
+		this.tmpwidth = i;
+		this.tmpheight = j;
+		
+		refreshScreenBuffer();
 	}
 
 }

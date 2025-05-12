@@ -1,11 +1,11 @@
 package me.ramazanenescik04.diken.gui.compoment;
 
+import java.awt.Point;
 import java.util.List;
 
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.InputHandler;
 import me.ramazanenescik04.diken.gui.Hitbox;
-import me.ramazanenescik04.diken.gui.screen.DownBackground;
 import me.ramazanenescik04.diken.gui.screen.IBackground;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
@@ -13,6 +13,8 @@ public class Panel extends GuiCompoment {
 	private static final long serialVersionUID = 1L;
 	private List<GuiCompoment> compoments;
 	private IBackground background;
+	
+	public boolean drawX = false;
 
 	public Panel(int x, int y, int width, int height) {
 		super(x, y, width, height);
@@ -43,12 +45,27 @@ public class Panel extends GuiCompoment {
 		return this.compoments.get(index);
 	}
 	
+	public GuiCompoment getCompoment(Point point) {
+		for (GuiCompoment compoment : this.compoments) {
+			if (compoment.intersects(new Hitbox(point.x - this.x, point.y - this.y, 1, 1))) {
+				return compoment;
+			}
+		}
+		return null;
+	}
+	
 	public int getCompomentCount() {
 		return this.compoments.size();
 	}
 
 	public Bitmap render() {
 		Bitmap bitmap = super.render();
+		if (this.drawX) {
+			bitmap.box(0, 0, width - 1, height - 1, 0xffffffff);
+			bitmap.drawLine(0, 0, this.width, this.height, 0xffffffff, 1);
+			bitmap.drawLine(this.width, 0, 0, this.height, 0xffffffff ,1);
+		}
+		
 		if (this.background != null) {
 			this.background.render(bitmap);
 		}

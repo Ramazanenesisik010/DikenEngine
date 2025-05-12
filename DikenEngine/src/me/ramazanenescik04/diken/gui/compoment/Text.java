@@ -1,5 +1,8 @@
 package me.ramazanenescik04.diken.gui.compoment;
 
+import java.util.Iterator;
+import java.util.stream.Stream;
+
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.gui.UniFont;
 import me.ramazanenescik04.diken.resource.Bitmap;
@@ -51,15 +54,16 @@ public class Text extends GuiCompoment {
 
 	public static void render(String text, Bitmap bitmap, int x, int y, int color, UniFont font) {
 	    // Split the text into lines
-	    String[] lines = text.split("\n");
+	    Stream<String> lines = text.lines();
 	    
 	    // Track the current y-position for rendering
 	    int currentY = y;
 	    
 	    // Height of a single line (approximate)
 	    int lineHeight = stringBitmapAverageHeight(text, font) + 2; // Add a small padding
-	    
-	    for (String line : lines) {
+	    Iterator<String> linesIter = lines.iterator();
+	    for (; linesIter.hasNext();) {
+	    	String line = linesIter.next();
 	        Bitmap[] chars = UniFont.getBitmapChars(line, font);
 	        int w = 0;
 	        
