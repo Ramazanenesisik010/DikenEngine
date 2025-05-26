@@ -24,13 +24,18 @@ public class IOResource {
 			return toBitmap(img);
 		} else if (_enum == EnumResource.SOUND) {
 			return SoundManager.loadSound(stream);
+		} else if (_enum == EnumResource.CURSOR) {
+			Bitmap cursorBitmap = (Bitmap) loadResource(stream, EnumResource.IMAGE);
+			CursorResource res = new CursorResource();
+			res.cursorBitmap = cursorBitmap;
+			
+			return res;
 		}
 		return null;
 	}
 	
 	public static Bitmap[][] loadResourceAndCut(InputStream stream, int sw, int sh) {
 		BufferedImage img = ((Bitmap)loadResource(stream, EnumResource.IMAGE)).toImage();
-		
 		int xSlices = img.getWidth() / sw;
 	    int ySlices = img.getHeight() / sh;
 	    Bitmap[][] result = new Bitmap[xSlices][ySlices];

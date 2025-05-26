@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>D:\DikenEngine\DikenEngine\DikenEngine-Bin\libs\engineLib.jar</jar>
-  <outfile>D:\DikenEngine\DikenEngine\DikenEngine-Bin\DikenEngine.exe</outfile>
+  <jar>/home/ramazanenescik04/eclipse-workspace/DikenEngine/DikenEngine/DikenEngine-Bin/libs/engineLib.jar</jar>
+  <outfile>/home/ramazanenescik04/eclipse-workspace/DikenEngine/DikenEngine/DikenEngine-Bin/DikenEngine.exe</outfile>
   <errTitle>Java 11 Yüklü Değil!</errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>

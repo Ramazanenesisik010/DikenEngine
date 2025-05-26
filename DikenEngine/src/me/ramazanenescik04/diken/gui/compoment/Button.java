@@ -8,7 +8,7 @@ import me.ramazanenescik04.diken.resource.ResourceLocator;
 public class Button extends GuiCompoment {
 	private static final long serialVersionUID = 1L;
 	public String text = "";
-	public int renderX, renderY, xa, ya, tColor;
+	public int renderX, renderY, xa, ya, tColor = 0xffffffff, bColor = 0xffffffff;
 	
 	private int textOffset = 0; // Yazı kaydırma için offset
     private boolean movingRight = true; // Yazının hareket yönü
@@ -26,48 +26,50 @@ public class Button extends GuiCompoment {
 		this.renderX = xa;
 		this.renderY = ya;
 		this.text = text;	
-		this.tColor = 0xffffffff;
 	}
 	
-	public Button(String text, int x, int y, int width, int height, int color) {
-		super(x, y, width, height);
-		this.xa = x;
-		this.ya = y;
-		this.renderX = xa;
-		this.renderY = ya;
-		this.text = text;
+	public Button setTextColor(int color) {
 		this.tColor = color;
+		return this;
+	}
+	
+	public Button setButtonColor(int color) {
+		this.bColor = color;
+		return this;
 	}
 	
 	public Bitmap render() {
 		Bitmap bitmap = new Bitmap(width + 4, height + 4);
-		bitmap.fill(0, 0, 0 + width, 0 + height, 0xff484848);
+		Bitmap buttonBitmap = bitmap.clone();
+		buttonBitmap.fill(0, 0, 0 + width, 0 + height, 0xff484848);
 		
 		ArrayBitmap button = (ArrayBitmap) ResourceLocator.getResource("button-array");
 		
 		for (int i = 0; i < width; i++) {
-			bitmap.draw(button.bitmap[0][1], i, height - 12);
-			bitmap.draw(button.bitmap[2][1], i, 0);
+			buttonBitmap.draw(button.bitmap[0][1], i, height - 12);
+			buttonBitmap.draw(button.bitmap[2][1], i, 0);
 		}
 		
 		for (int i = 0; i < height; i++) {
-			bitmap.draw(button.bitmap[1][0], 0, 0 + i);
-			bitmap.draw(button.bitmap[1][1], 0 + width - 12, 0 + i);
+			buttonBitmap.draw(button.bitmap[1][0], 0, 0 + i);
+			buttonBitmap.draw(button.bitmap[1][1], 0 + width - 12, 0 + i);
 		}
 		
-		bitmap.draw(button.bitmap[0][0], 0, 0 + (height - 12));
-		bitmap.draw(button.bitmap[0][2], 0 + width, 0 + (height - 12));
-		bitmap.draw(button.bitmap[2][0], 0, 0);
-		bitmap.draw(button.bitmap[1][2], 0 + width, 0);
+		buttonBitmap.draw(button.bitmap[0][0], 0, 0 + (height - 12));
+		buttonBitmap.draw(button.bitmap[0][2], 0 + width, 0 + (height - 12));
+		buttonBitmap.draw(button.bitmap[2][0], 0, 0);
+		buttonBitmap.draw(button.bitmap[1][2], 0 + width, 0);
+		
+		bitmap.blendDraw(buttonBitmap, 0, 0, bColor);
 		
 		// Yazı genişliğini kontrol et
         int textWidth = Text.stringBitmapWidth(text, DikenEngine.getEngine().defaultFont);
         
         if (textWidth > width) {     
-            Text.render(text, bitmap, -textOffset + 10, height / 2 - 4, tColor);
+            Text.render(text, bitmap, -textOffset + 10, ((height / 2) - 2), tColor);
         } else {
             // Normal merkezi render
-            Text.renderCenter(text, bitmap, width / 2, height / 2 - 4, tColor);
+            Text.renderCenter(text, bitmap, width / 2 + 2, ((height / 2) - 2), tColor);
         }
         
         if (isTouching) {

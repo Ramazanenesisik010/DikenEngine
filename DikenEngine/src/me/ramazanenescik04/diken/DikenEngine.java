@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.openal.AL;
@@ -29,15 +30,17 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 
+import me.ramazanenescik04.diken.dev.DevGame;
 import me.ramazanenescik04.diken.game.Config;
-import me.ramazanenescik04.diken.game.DevGame;
 import me.ramazanenescik04.diken.game.GameLoader;
 import me.ramazanenescik04.diken.game.IGame;
 import me.ramazanenescik04.diken.game.TestGame;
 import me.ramazanenescik04.diken.gui.UniFont;
 import me.ramazanenescik04.diken.gui.screen.*;
+import me.ramazanenescik04.diken.gui.window.WindowManager;
 import me.ramazanenescik04.diken.resource.ArrayBitmap;
 import me.ramazanenescik04.diken.resource.Bitmap;
+import me.ramazanenescik04.diken.resource.CursorResource;
 import me.ramazanenescik04.diken.resource.EnumResource;
 import me.ramazanenescik04.diken.resource.IOResource;
 import me.ramazanenescik04.diken.resource.IResource;
@@ -47,8 +50,8 @@ import me.ramazanenescik04.diken.tools.*;
 /**Bu sınıf Diken Engine'in ana sınıfıdır. Bu sınıf, LWJGL kütüphanesini kullanarak oyun motorunu başlatır ve çalıştırır. 
  * @author Ramazanenescik04*/
 public class DikenEngine implements Runnable {
-	public static final String VERSION = "0.7.1 Prerelease 3";
-	public static final int protocolVersion = 3;
+	public static final String VERSION = "0.7.1 Prerelease 4";
+	public static final int protocolVersion = 4;
 	
 	public Canvas canvas;
 	public int width;
@@ -73,12 +76,15 @@ public class DikenEngine implements Runnable {
 	public Bitmap screenBitmap;
 	
 	public UniFont defaultFont;
+	public WindowManager wManager;
 	
 	public Config config;
 	private static GameLoader loader = new GameLoader();
 	
 	/** Şu Anki Ekran */
 	private Screen currentScreen;
+	// null = Varsayılan Fare İmleci
+	private CursorResource cursorResource = null;
 	
 	private static DikenEngine instance;
 	
@@ -118,6 +124,10 @@ public class DikenEngine implements Runnable {
 		} else {
 			Keyboard.enableRepeatEvents(false);
 		}
+	}
+	
+	public void setCursor(CursorResource cursor) {
+		this.cursorResource = cursor;
 	}
 	
 	/** Bu kod, Diken Engine'i başlatır. */
@@ -348,7 +358,7 @@ public class DikenEngine implements Runnable {
 			log("GL Error: " + GL11.glGetString(error));
 			log("-------------------");
 		}
-	}
+	} 
 
 	/** Bu kod yerel resimleri ve sesleri yükler. */
 	private static void loadLocalImages() {
@@ -366,6 +376,19 @@ public class DikenEngine implements Runnable {
 		ArrayBitmap batteryImage = new ArrayBitmap();
 		batteryImage.bitmap = IOResource.loadResourceAndCut(DikenEngine.class.getResourceAsStream("/battery.png"), 16, 8);
 		ResourceLocator.addResource(batteryImage, "battery-image");
+		
+		ArrayBitmap win_icons = new ArrayBitmap();
+		win_icons.setArray(IOResource.loadResourceAndCut(IOResource.createClassResourceStream("/win_icons.png"), 16, 16));
+		ResourceLocator.addResource(win_icons, "win-icons");
+		
+		ArrayBitmap win_cursors = new ArrayBitmap();
+		win_cursors.setArray(IOResource.loadResourceAndCut(IOResource.createClassResourceStream("/scl_cur.png"), 32, 32));
+		
+		for (int j = 0; j < 3; j++) {
+			CursorResource cursor = new CursorResource();
+			cursor.cursorBitmap = win_cursors.bitmap[0][j];
+			ResourceLocator.addResource(cursor, "cursor-" + j);
+		}
 	}
 
 	/** Bu Kodu Şöyle Başlat: new Thread(dikenengine).start(); */
@@ -374,6 +397,7 @@ public class DikenEngine implements Runnable {
 			DikenEngine.log("DikenEngine " + VERSION + " Starting...");	
 			
 			defaultFont = UniFont.getFont("default_font");
+			wManager = new WindowManager();
 			
 			if(this.canvas != null) {
 				Graphics var1 = this.canvas.getGraphics();
@@ -548,15 +572,36 @@ public class DikenEngine implements Runnable {
 			System.gc();
 		} catch (Exception e) {
 			e.printStackTrace();
+			
+			JOptionPane.showMessageDialog(null, 
+					"Bir hata oluştu: " + e.getMessage() + "\nHata ayıklama için konsolu kontrol edin.", 
+					"DikenEngine - Hata!", 
+					JOptionPane.ERROR_MESSAGE);
 		}
 	} 
 	
-	/** Bu kod her 1 saniyede 60 kez çalışır. */
-	private void tick() {
+	/** Bu kod her 1 saniyede 60 kez çalışır. 
+	 * @throws LWJGLException */
+	private void tick() throws LWJGLException {
 		getGLError();
 		
 		if (currentScreen != null) {
 			currentScreen.tick();
+		}
+		wManager.tick();
+		
+		if (this.cursorResource == null && Mouse.getNativeCursor() != null) {
+			Mouse.setNativeCursor(null);
+		} else if (this.cursorResource != null) {
+			Cursor cursor = this.cursorResource.getCursor();
+			
+			if (cursor != Mouse.getNativeCursor()) {
+				try {
+					Mouse.setNativeCursor(cursor);
+				} catch (LWJGLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		if(Keyboard.next()) {
@@ -579,16 +624,20 @@ public class DikenEngine implements Runnable {
 				if (Keyboard.getEventKey() == Keyboard.KEY_F11) {
 					this.setFullscreen(!fullscreen);
 				}
+				
 				if (currentScreen != null) {
 					currentScreen.keyboardEveent();
 				}
+				wManager.keyboardEvent();
 			}
 		}
 		if (Mouse.next()) {
 			InputHandler.updateMousePosition();
+			
 			if (currentScreen != null) {
 				currentScreen.mouseEvent();
 			}		
+			wManager.mouseEvent();
 		}
 	}
 
@@ -609,6 +658,8 @@ public class DikenEngine implements Runnable {
 		if (currentScreen != null) {
 			currentScreen.render(bitmap);
 		}
+		
+		wManager.render(bitmap);
 	}
 	
 	/** Bu kod, Diken Engine'de hata ayıklama amacıyla kullanılır.
@@ -690,6 +741,13 @@ public class DikenEngine implements Runnable {
             Display.update();
             
             refreshScreenBuffer();
+            sendScreenResized();
+		}
+	}
+	
+	private void sendScreenResized() {
+		if (this.currentScreen != null) {
+			currentScreen.resized();
 		}
 	}
 	
@@ -716,6 +774,7 @@ public class DikenEngine implements Runnable {
 		}
 		
 		refreshScreenBuffer();
+		sendScreenResized();
 	}
 
 	public void setSize(int i, int j) {
@@ -730,6 +789,7 @@ public class DikenEngine implements Runnable {
 		this.tmpheight = j;
 		
 		refreshScreenBuffer();
+		sendScreenResized();
 	}
 
 }

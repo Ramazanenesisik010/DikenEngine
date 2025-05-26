@@ -29,3 +29,6 @@ dmainmenu.editor=DikenEditor'u Aç
 dmainmenu.soundtest=Ses Testi
 dmainmenu.setting=Ayarlar
 dmainmenu.exit=Oyundan Çık
+dmainmenu.about=Hakkında
+
+about.author=Yapanlar

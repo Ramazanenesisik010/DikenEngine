@@ -34,7 +34,7 @@ public abstract class Screen {
 	}
 
 	private void mouseClick(int mouseX, int mouseY, int eventButton) {
-		contentPane.mouseClicked(mouseX, mouseY, eventButton, InputHandler.isMouseOnScreen());
+		contentPane.mouseClicked(mouseX, mouseY, eventButton, (InputHandler.isMouseOnScreen() && engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))));
 	}
 	
 	public void openScreen() {
@@ -42,6 +42,8 @@ public abstract class Screen {
 	   
 	public void closeScreen() {
 	}
+	
+	public void resized() {};
 
 	public void render(Bitmap bitmap) {
 		if (renderBackground && background != null) {
@@ -60,7 +62,7 @@ public abstract class Screen {
 		int mouseX = InputHandler.getMousePosition().x;
 		int mouseY = InputHandler.getMousePosition().y;
 		
-		contentPane.mouseGetInfo(mouseX, mouseY, true);
+		contentPane.mouseGetInfo(mouseX, mouseY, (InputHandler.isMouseOnScreen() && engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))));
 		
 		if (Mouse.getEventButtonState()) {
 			this.mouseClick(mouseX, mouseY, Mouse.getEventButton());

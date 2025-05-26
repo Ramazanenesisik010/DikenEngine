@@ -25,7 +25,7 @@ public class Text extends GuiCompoment {
 	}
 	
 	public Text(String text, int x, int y, int color, UniFont font) {
-		super(x, y, Text.stringBitmapWidth(text, DikenEngine.getEngine().defaultFont), Text.stringBitmapAverageHeight(text, DikenEngine.getEngine().defaultFont));
+		super(x, y, Text.stringBitmapAverageWidth(text, font), Text.stringBitmapAverageHeight(text, font));
 		this.text = text;
 		this.color = color;
 		this.font = font;
@@ -47,7 +47,7 @@ public class Text extends GuiCompoment {
 			this.width = Text.stringBitmapWidth(text, font);
 		}
 		
-		if((this.height != Text.stringBitmapAverageHeight(text, DikenEngine.getEngine().defaultFont))) {
+		if((this.height != Text.stringBitmapAverageHeight(text, font))) {
 			this.height = Text.stringBitmapAverageHeight(text, font);
 		}
 	}
@@ -78,16 +78,10 @@ public class Text extends GuiCompoment {
 	                continue;
 	            }
 	            
-	            int darkColor = 0, var6;
-	            var6 = darkColor & -16777216;
-	            darkColor = (color & 16579836) >> 2;
-	            darkColor += var6;
-	            
-	            // Render character with shadow
-	            bitmap.blendDraw(btp, (x + w) + 1, currentY + 1, darkColor);
+	            // Render character
 	            bitmap.blendDraw(btp, x + w, currentY, color);
 	            
-	            w += ((btp.w) + 1);
+	            w += ((btp.w));
 	        }
 	        
 	        // Move to the next line
@@ -137,22 +131,29 @@ public class Text extends GuiCompoment {
 	}
 	
 	public static int stringBitmapAverageWidth(String[] texts, UniFont font) {
-		int w = 0;
-		int ah = 0;
-		for(int l = 0; l < texts.length; l++) {
-			String text = texts[l];
-			
-			Bitmap[] chars = UniFont.getBitmapChars(text, font);
-			
-			for (int i = 0; i < chars.length; i++) {
-				Bitmap btp = chars[i];
-				ah += ((btp.w) + 1);
-			}
-		}
+		int maxLength = 0;
+	    for (String str : texts) {
+	    	 if (str != null) {
+	    		 Bitmap[] chars = UniFont.getBitmapChars(str, font);
+	             int length = 0;
+	             for (int i = 0; i < chars.length; i++) {
+	                 Bitmap btp = chars[i];
+	                 length += ((btp.w) + 1);
+	             }
+	             if (length > maxLength) {
+	                 maxLength = length;
+	             }
+	         }
+	    }
+	    
+	    return maxLength;
+	}
+	
+	public static int stringBitmapAverageWidth(String text, UniFont font) {
+		Stream<String> lines = text.lines();
+		String[] texts = lines.toArray(String[]::new);
 		
-		w = ah / texts.length;
-				
-		return w;
+		return stringBitmapAverageWidth(texts, font);
 	}
 	
 	public static int stringBitmapAverageHeight(String text, UniFont font) {

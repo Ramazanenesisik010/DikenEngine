@@ -12,8 +12,8 @@ public class LinkButton extends GuiLink {
 	private Button button;
 
 	public LinkButton(String text, int x, int y, int width, int height, int color) {
-		super(x, y, width, height);
-		button = new Button(text, x, y, width, height, color);
+		this(text, x, y, width, height);
+		button = button.setTextColor(color);
 	}
 	
 	public LinkButton(String text, int x, int y, int width, int height) {

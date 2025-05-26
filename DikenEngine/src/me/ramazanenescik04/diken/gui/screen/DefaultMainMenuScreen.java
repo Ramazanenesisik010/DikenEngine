@@ -7,6 +7,8 @@ import me.ramazanenescik04.diken.gui.compoment.Button;
 import me.ramazanenescik04.diken.gui.compoment.LinkButton;
 import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.gui.compoment.Text;
+import me.ramazanenescik04.diken.gui.window.AboutWindow;
+import me.ramazanenescik04.diken.gui.window.SettingsWindow;
 import me.ramazanenescik04.diken.resource.ArrayBitmap;
 import me.ramazanenescik04.diken.resource.Bitmap;
 import me.ramazanenescik04.diken.resource.Language;
@@ -59,6 +61,11 @@ public class DefaultMainMenuScreen extends Screen {
 	public void closeScreen() {
 	}
 	
+	public void resized() {
+		this.getContentPane().getCompoment(3).setLocation(10, engine.getHeight() - (1 * 20));
+		this.getContentPane().getCompoment(4).setLocation(10, engine.getHeight() - (2 * 20));
+	}
+	
 	private static class DMMPanel extends Panel {
 		private static final long serialVersionUID = 1L;
 
@@ -78,16 +85,21 @@ public class DefaultMainMenuScreen extends Screen {
 			Language lang = Language.i;
 			
 			clearCompoments();
-			Button performaceButton = new Button(lang.languageValue("dmainmenu.editor"), 10, 100, 200, 15).setRunnable(() -> {
-				//engine.setCurrentScreen(new DikenEditorScreen(engine.getCurrentScreen()));
+			Button performaceButton = new Button(lang.languageValue("Demo Ekranını Aç"), 10, 100, 200, 15).setRunnable(() -> {
+				engine.setCurrentScreen(new DemoScreen(engine.getCurrentScreen()));
 			});
 			performaceButton.active = false;
 			addCompoment(performaceButton);
-			addCompoment(new Button(lang.languageValue("dmainmenu.setting"), 10, 100 + (1 * 20), 200, 15));
+			addCompoment(new Button(lang.languageValue("dmainmenu.setting"), 10, 100 + (1 * 20), 200, 15).setRunnable(() -> {
+				engine.wManager.addWindow(new SettingsWindow()); 
+			}));
 			addCompoment(new Button(lang.languageValue("dmainmenu.exit"), 10, 100 + (2 * 20), 200, 15).setRunnable(() -> {
 				engine.close();
 			}));
 			addCompoment(new LinkButton("Github", 10, engine.getHeight() - (1 * 20), 200, 15).setURI(URI.create("https://github.com/Ramazanenesisik010/DikenEngine")));
+			addCompoment(new Button(lang.languageValue("dmainmenu.about"), 10, engine.getHeight() - (2 * 20), 200, 15).setRunnable(() -> {
+				engine.wManager.addWindow(new AboutWindow());
+			}));
 		}
 		
 	}

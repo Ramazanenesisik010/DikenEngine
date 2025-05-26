@@ -21,6 +21,10 @@ public class Panel extends GuiCompoment {
 		compoments = new java.util.ArrayList<GuiCompoment>();
 	}
 	
+	public Panel() {
+		this(0, 0, 100, 100);
+	}
+
 	public void addCompoment(GuiCompoment compoment) {
 		if (compoment instanceof Panel) {
 			Panel panel = (Panel) compoment;

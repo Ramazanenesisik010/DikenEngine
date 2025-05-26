@@ -3,7 +3,11 @@ package me.ramazanenescik04.diken.resource;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
+
+import javax.imageio.ImageIO;
 
 public class Bitmap implements IResource {
 	private static final long serialVersionUID = 1L;
@@ -281,6 +285,7 @@ public class Bitmap implements IResource {
 	}
 
 	// Düzeltilmiş blendDraw metodu
+	// Düzeltilmiş blendDraw metodu
 	public void blendDraw(Bitmap b, int xp, int yp, int col) {
 	    xp += xOffs;
 	    yp += yOffs;
@@ -300,11 +305,11 @@ public class Bitmap implements IResource {
 
 	    if (xFlip) {
 	        for (int y = y0; y < y1; y++) {
-	            int sp = (y - yp) * b.w + xp + b.w - 1;
+	            int sp = (y - yp) * b.w + b.w - 1;
 	            int dp = y * w;
 
 	            for (int x = x0; x < x1; x++) {
-	                int c = b.pixels[sp - x];
+	                int c = b.pixels[sp - (x - xp)];
 	                int a = (c >> 24) & 0xff;
 	                
 	                if (a > 0) {
@@ -313,9 +318,10 @@ public class Bitmap implements IResource {
 	                    int srcB = c & 0xff;
 	                    
 	                    // Kaynak ve col değerini karıştır
-	                    int blendR = (srcR + colR) / 2;
-	                    int blendG = (srcG + colG) / 2;
-	                    int blendB = (srcB + colB) / 2;
+	                    // Burada düzeltme - renkleri doğru şekilde karıştırma
+	                    int blendR = (srcR * colR) / 255;
+	                    int blendG = (srcG * colG) / 255;
+	                    int blendB = (srcB * colB) / 255;
 	                    
 	                    // Mevcut piksel ile alfa değerine göre karıştır
 	                    int bgColor = pixels[dp + x];
@@ -333,11 +339,11 @@ public class Bitmap implements IResource {
 	        }
 	    } else {
 	        for (int y = y0; y < y1; y++) {
-	            int sp = (y - yp) * b.w - xp;
+	            int sp = (y - yp) * b.w;
 	            int dp = y * w;
 
 	            for (int x = x0; x < x1; x++) {
-	                int c = b.pixels[sp + x];
+	                int c = b.pixels[sp + (x - xp)];
 	                int a = (c >> 24) & 0xff;
 	                
 	                if (a > 0) {
@@ -346,9 +352,10 @@ public class Bitmap implements IResource {
 	                    int srcB = c & 0xff;
 	                    
 	                    // Kaynak ve col değerini karıştır
-	                    int blendR = (srcR + colR) / 2;
-	                    int blendG = (srcG + colG) / 2;
-	                    int blendB = (srcB + colB) / 2;
+	                    // Burada düzeltme - renkleri doğru şekilde karıştırma
+	                    int blendR = (srcR * colR) / 255;
+	                    int blendG = (srcG * colG) / 255;
+	                    int blendB = (srcB * colB) / 255;
 	                    
 	                    // Mevcut piksel ile alfa değerine göre karıştır
 	                    int bgColor = pixels[dp + x];
@@ -609,5 +616,13 @@ public class Bitmap implements IResource {
 		Bitmap bitmap = new Bitmap(i, j);
 		bitmap.clear(k);
 		return bitmap;
+	}
+
+	public void saveResource(OutputStream stream) {
+		try {
+			ImageIO.write(toImage(), "png", stream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -29,3 +29,6 @@ dmainmenu.editor=Open DikenEditor
 dmainmenu.soundtest=Sound Test
 dmainmenu.setting=Settings
 dmainmenu.exit=Exit Game
+dmainmenu.about=About
+
+about.author=Authors
