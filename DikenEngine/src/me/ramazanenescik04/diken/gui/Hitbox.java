@@ -8,6 +8,12 @@ public class Hitbox extends Rectangle {
 	
 	public Hitbox(int x, int y, int width, int height) {
 		super(x, y, width, height);
+		
+		if (width < 1) width = 1;
+		if (height < 1) height = 1;
+		
+		this.width = width;
+		this.height = height;
 	}
 	
 	public Hitbox(int x, int y) {
@@ -16,6 +22,23 @@ public class Hitbox extends Rectangle {
 
 	public boolean intersects(Rectangle r) {
 	    return this.active ? super.intersects(r) : false;
+	}
+	
+	public boolean contains(int x, int y) {
+		return this.active && super.contains(x, y);
+	}
+	
+	public boolean contains(Rectangle r) {
+		return this.active && super.contains(r);
+	}
+	
+	public Hitbox setActive(boolean active) {
+		this.active = active;
+		return this;
+	}
+	
+	public boolean isActive() {
+		return active;
 	}
 
 }

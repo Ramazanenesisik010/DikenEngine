@@ -1,7 +1,6 @@
 package me.ramazanenescik04.diken.gui.window;
 
 import java.awt.Point;
-import java.io.IOException;
 import java.util.*;
 
 import org.lwjgl.input.Keyboard;
@@ -32,6 +31,8 @@ public class WindowManager {
 
     public void addWindow(Window window) {   	
     	window.open();
+    	window.moved();
+    	window.resized();
         windows.add(window);
         activeWindow = window;
     }

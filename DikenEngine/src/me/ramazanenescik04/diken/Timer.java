@@ -6,6 +6,12 @@ public class Timer {
     private boolean isRunnable = false;
     private Thread timerThread;
 
+    /**
+     * 
+     * @param r Runnable to be executed on each tick of the timer
+     * @param cT Current time in milliseconds
+     * @param mT Maximum time in milliseconds
+     */
     public Timer(TimerRunnable r, long cT, long mT) {
         this.runnable = r;
         this.currentTime = cT;
@@ -20,7 +26,7 @@ public class Timer {
         isRunnable = true;
 
         timerThread = new Thread(() -> {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis(); // Başlangıç zamanını al
             long endTime = startTime + maxTime;
 
             while (isRunnable && System.currentTimeMillis() < endTime) {
@@ -65,6 +71,16 @@ public class Timer {
     }
     
     public static interface TimerRunnable {
+    	/**
+    	 * 
+    	 * Bu metot, zamanlayıcı durana kadar her 10 milisaniyede bir çağrılır.
+    	 * 
+    	 * @param currentTime Geçerli zaman milis olarak alır (Gerçek zaman milis'i eklemez)
+    	 * @param maxTime Kaç milis sonra bitmesi gerektiğini söyler (Gerçek zaman milis'i eklemez)
+    	 * @param startTime Başlangıç zamanını milis olarak alır
+    	 * @param endTime Gerçek zaman milis ile maxTime'i birleştirir
+    	 * @param isFinished Bitip bitmediğini söyler
+    	 */
     	public abstract void run(long currentTime, long maxTime, long startTime, long endTime, boolean isFinished);
     }
 }

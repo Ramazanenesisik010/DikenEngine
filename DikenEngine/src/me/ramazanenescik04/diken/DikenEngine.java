@@ -3,6 +3,7 @@ package me.ramazanenescik04.diken;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -44,14 +45,17 @@ import me.ramazanenescik04.diken.resource.CursorResource;
 import me.ramazanenescik04.diken.resource.EnumResource;
 import me.ramazanenescik04.diken.resource.IOResource;
 import me.ramazanenescik04.diken.resource.IResource;
+import me.ramazanenescik04.diken.resource.Language;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
 import me.ramazanenescik04.diken.tools.*;
+import me.ramazanenescik04.reportbugs.Issue;
+import me.ramazanenescik04.reportbugs.gui.ReportBugGUI;
 
 /**Bu sınıf Diken Engine'in ana sınıfıdır. Bu sınıf, LWJGL kütüphanesini kullanarak oyun motorunu başlatır ve çalıştırır. 
  * @author Ramazanenescik04*/
 public class DikenEngine implements Runnable {
-	public static final String VERSION = "0.7.1 Prerelease 4";
-	public static final int protocolVersion = 4;
+	public static final String VERSION = "0.7.1";
+	public static final int protocolVersion = 5;
 	
 	public Canvas canvas;
 	public int width;
@@ -212,7 +216,7 @@ public class DikenEngine implements Runnable {
 		IGame game = new TestGame();
 		
 		File autoLoadGame = new File("./algame.txt");
-		String[] alData = FileUtils.readFileArray(autoLoadGame);
+		String[] alData = Utils.readFileArray(autoLoadGame);
 		if (alData.length == 0) {
 			alData = new String[] {""};
 		}
@@ -223,9 +227,9 @@ public class DikenEngine implements Runnable {
 			gameName = (String) argMap.get("-game");
 		}
 		
-		log("Loading Game: " + gameName);
+		log("Loading Game: " + (gameName.isEmpty() ? "default" : gameName));
 		
-		game = loadGameAAA(gameName);
+		game = loadGame(gameName);
 		game.loadAdvancedNative();
 		game.loadNatives();
 		game.loadResources();
@@ -242,7 +246,7 @@ public class DikenEngine implements Runnable {
 		this.isResizable = resizable;
 	}
 
-	private static IGame loadGameAAA(String gameName) {
+	private static IGame loadGame(String gameName) {
 		if (!gameName.equals("null") && !gameName.isEmpty()) {
 			if (gameName.equals("dev")) {
 				return new DevGame();
@@ -297,9 +301,9 @@ public class DikenEngine implements Runnable {
 	
 	private static void loadLocalNatives() {
 		try {
-			GetOS.Arch arch = GetOS.getArch();
+			SystemInfo.Architecture arch = SystemInfo.instance.getArch();
 			
-			if(arch == GetOS.Arch.x86) {
+			if(arch == SystemInfo.Architecture.X86) {
 				// Linux için
 				NativeManager.loadLibraryFromOSPathFromJar("/libjinput-linux.so");
 				NativeManager.loadLibraryFromOSPathFromJar("/liblwjgl.so");
@@ -315,7 +319,7 @@ public class DikenEngine implements Runnable {
 				NativeManager.loadLibraryFromOSPathFromJar("/jinput-raw.dll");
 				NativeManager.loadLibraryFromOSPathFromJar("/lwjgl.dll");
 				NativeManager.loadLibraryFromOSPathFromJar("/OpenAL32.dll");
-			} else if (arch == GetOS.Arch.x64) {
+			} else if (arch == SystemInfo.Architecture.X86_64) {
 				// Linux için
 				NativeManager.loadLibraryFromOSPathFromJar("/libjinput-linux64.so");
 			    NativeManager.loadLibraryFromOSPathFromJar("/liblwjgl64.so");
@@ -363,23 +367,23 @@ public class DikenEngine implements Runnable {
 	/** Bu kod yerel resimleri ve sesleri yükler. */
 	private static void loadLocalImages() {
 		IResource icon_x16 = IOResource.loadResource(DikenEngine.class.getResourceAsStream("/icon-x16.png"), EnumResource.IMAGE);
-		ResourceLocator.addResource(icon_x16, "icon-x16");
+		ResourceLocator.addResource("icon-x16", icon_x16);
 		
 		ArrayBitmap button = new ArrayBitmap();
 		button.bitmap = IOResource.loadResourceAndCut(DikenEngine.class.getResourceAsStream("/button.png"), 16, 16);
-		ResourceLocator.addResource(button, "button-array");
+		ResourceLocator.addResource("button-array", button);
 		
 		ArrayBitmap bg_tiles = new ArrayBitmap();
 		bg_tiles.bitmap = IOResource.loadResourceAndCut(DikenEngine.class.getResourceAsStream("/background_tiles.png"), 32, 32);
-		ResourceLocator.addResource(bg_tiles, "bgd-tiles");
+		ResourceLocator.addResource("bgd-tiles", bg_tiles);
 		
 		ArrayBitmap batteryImage = new ArrayBitmap();
 		batteryImage.bitmap = IOResource.loadResourceAndCut(DikenEngine.class.getResourceAsStream("/battery.png"), 16, 8);
-		ResourceLocator.addResource(batteryImage, "battery-image");
+		ResourceLocator.addResource("battery-image", batteryImage);
 		
 		ArrayBitmap win_icons = new ArrayBitmap();
 		win_icons.setArray(IOResource.loadResourceAndCut(IOResource.createClassResourceStream("/win_icons.png"), 16, 16));
-		ResourceLocator.addResource(win_icons, "win-icons");
+		ResourceLocator.addResource("win-icons", win_icons);
 		
 		ArrayBitmap win_cursors = new ArrayBitmap();
 		win_cursors.setArray(IOResource.loadResourceAndCut(IOResource.createClassResourceStream("/scl_cur.png"), 32, 32));
@@ -387,8 +391,12 @@ public class DikenEngine implements Runnable {
 		for (int j = 0; j < 3; j++) {
 			CursorResource cursor = new CursorResource();
 			cursor.cursorBitmap = win_cursors.bitmap[0][j];
-			ResourceLocator.addResource(cursor, "cursor-" + j);
+			ResourceLocator.addResource("cursor-" + j, cursor);
 		}
+		
+		Language lang = Language.i;
+		lang.addLangValue("tr-TR", "dmainmenu.reportbug=Hata Bildir");
+		lang.addLangValue("en-US", "dmainmenu.reportbug=Report Bug");
 	}
 
 	/** Bu Kodu Şöyle Başlat: new Thread(dikenengine).start(); */
@@ -568,15 +576,27 @@ public class DikenEngine implements Runnable {
 			Mouse.destroy();
 			Keyboard.destroy();
 			Display.destroy();
+			loader.close();
 			
 			System.gc();
 		} catch (Exception e) {
 			e.printStackTrace();
 			
-			JOptionPane.showMessageDialog(null, 
-					"Bir hata oluştu: " + e.getMessage() + "\nHata ayıklama için konsolu kontrol edin.", 
-					"DikenEngine - Hata!", 
-					JOptionPane.ERROR_MESSAGE);
+			crash(e);
+			
+			config.saveConfig();
+			
+			Display.destroy();
+			Mouse.destroy();
+			Keyboard.destroy();
+			SoundManager.destroy();
+			loader.close();
+			
+			for (Window w : Window.getWindows()) {
+			    w.dispose();
+			}
+			
+			System.exit(1);
 		}
 	} 
 	
@@ -604,7 +624,7 @@ public class DikenEngine implements Runnable {
 			}
 		}
 		
-		if(Keyboard.next()) {
+		while (Keyboard.next()) {
 			if (Keyboard.getEventKeyState()) {
 				if (Keyboard.getEventKey() == Keyboard.KEY_F2) {
 					Bitmap screenshotBitmap = new Bitmap(getWidth(), getHeight());
@@ -625,13 +645,22 @@ public class DikenEngine implements Runnable {
 					this.setFullscreen(!fullscreen);
 				}
 				
+				if (Keyboard.getEventKey() == Keyboard.KEY_F12) {
+					ReportBugGUI.showErrorReport(new DEngineBugHandler());
+				}
+				
+				if (Keyboard.getEventKey() == Keyboard.KEY_F3) {
+					this.config.setProperty("debug", 
+							this.config.getProperty("debug").equals("true") ? "false" : "true");
+				}
+				
 				if (currentScreen != null) {
 					currentScreen.keyboardEveent();
 				}
 				wManager.keyboardEvent();
 			}
 		}
-		if (Mouse.next()) {
+		while (Mouse.next()) {
 			InputHandler.updateMousePosition();
 			
 			if (currentScreen != null) {
@@ -660,6 +689,16 @@ public class DikenEngine implements Runnable {
 		}
 		
 		wManager.render(bitmap);
+		
+		
+		if (this.config.getProperty("debug").equals("true")) {
+			bitmap.drawText("FPS: " + currentFPS, 2, 2, false);
+			bitmap.drawText("Screen: " + (currentScreen != null ? currentScreen.getClass().getSimpleName() : "null"), 2, 12, false);
+			bitmap.drawText("Width: " + getWidth() + " Height: " + getHeight(), 2, 22, false);
+			bitmap.drawText("Scale: " + scale, 2, 32, false);
+			java.awt.Point point = InputHandler.getMousePosition();
+			bitmap.drawText("Mouse: " + point.x + ", " + point.y, 2, 42, false);
+		}
 	}
 	
 	/** Bu kod, Diken Engine'de hata ayıklama amacıyla kullanılır.
@@ -724,6 +763,8 @@ public class DikenEngine implements Runnable {
                     this.width = this.tmpwidth;
                     this.height = this.tmpheight;
                 }
+                
+                Display.setDisplayMode(new DisplayMode(width, height));
 
                 if (this.width <= 0)
                 {
@@ -734,6 +775,7 @@ public class DikenEngine implements Runnable {
                 {
                     this.height = 1;
                 }
+                
             }
 			Display.setFullscreen(this.fullscreen);
             Display.setVSyncEnabled(this.config.getProperty("sync").equals("true"));
@@ -791,5 +833,40 @@ public class DikenEngine implements Runnable {
 		refreshScreenBuffer();
 		sendScreenResized();
 	}
-
+	
+	private void crash(Throwable e) {
+		String title = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage().trim();
+		ReportBugGUI.showError(title, Utils.getStackTraceString(e).trim());
+		
+		int status = ReportBugGUI.showSendErrorPopup();
+		
+		StringBuilder desc = new StringBuilder();
+		desc.append("DikenEngine Version: ").append(VERSION).append("\n");
+		desc.append("Protocol Version: ").append(protocolVersion).append("\n");
+		desc.append("Java Version: ").append(System.getProperty("java.version")).append("\n");
+		desc.append("OS: ").append(System.getProperty("os.name")).append(" (").append(System.getProperty("os.arch")).append(")\n\n");
+		desc.append("Date: ").append(new Date()).append("\n");
+		
+		String[] errorLines = Utils.getStackTraceStringArray(e);
+		if (errorLines.length > 0) {
+			desc.append("Error: ").append(errorLines[0]).append("\n");
+		}
+		
+		if (errorLines.length > 1) {
+			desc.append("Stack Trace:\n");
+			for (String line : errorLines) {
+				desc.append(line).append("\n");
+			}
+		} else {
+			desc.append("No stack trace available.\n");
+		}
+		
+		Issue issue = new Issue(title, desc.toString().trim(), Issue.Severity.CRITICAL);
+		
+		if (status == 0) {
+			new DEngineBugHandler().handle(issue);
+		} else if (status == 1) {
+			ReportBugGUI.showErrorReportWait(issue.getTitle(), issue.getDesc(), new DEngineBugHandler());
+		}
+	}
 }

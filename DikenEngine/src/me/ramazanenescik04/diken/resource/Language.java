@@ -60,5 +60,24 @@ public class Language {
 		}
 		return key;
 	}
+	
+	/**
+	 * Example:
+	 * key = "zort.helloworld=MerhabaDünya"
+	 * 
+	 * @param lang
+	 * @param key
+	 */
+	public void addLangValue(String lang, String key) {
+		String[] keys = key.split("=");
+		
+		if (languageTable.containsKey(lang)) {
+			languageTable.get(lang).setProperty(keys[0], keys[1]);
+		} else {
+			Properties langg = new Properties();
+			langg.setProperty(keys[0], keys[1]);
+			languageTable.put(lang, langg);
+		}
+	}
 
 }

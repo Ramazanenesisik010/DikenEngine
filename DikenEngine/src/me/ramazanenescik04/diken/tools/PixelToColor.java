@@ -22,4 +22,13 @@ public class PixelToColor {
 		return (alpha << 24) | (red << 16) | (green << 8) | blue;
 	}
 
+	public static int toColor(float alpha, float red, float green, float blue) {
+		return toColor(
+			(int) (alpha * 255),
+			(int) (red * 255),
+			(int) (green * 255),
+			(int) (blue * 255)
+		);
+	}
+
 }

@@ -4,8 +4,6 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.gui.compoment.Button;
@@ -44,8 +42,8 @@ public class GuiEditorScreen extends Screen {
 		code.append("	public void openScreen() {\n");
 		
 		code.append("		this.getContentPane().clearCompoments();\n");
-		for (int i = 0; i < editorPanel.getCompomentCount(); i++) {
-			code.append("		this.getContentPane().addCompoments(" + generateCompomentCode(editorPanel.getCompoment(i)) + ");\n");
+		for (int i = 0; i < editorPanel.count(); i++) {
+			code.append("		this.getContentPane().addCompoments(" + generateCompomentCode(editorPanel.get(i)) + ");\n");
 		}
 		
 		code.append("	}\n");
@@ -71,57 +69,57 @@ public class GuiEditorScreen extends Screen {
 	
 	public void render(Bitmap bitmap) {
 		super.render(bitmap);
-		Text.render("Total Compoments: " + editorPanel.getCompomentCount() + ", Active Modes: " + (isCompomentEditFieldMode ? "ObjectFieldEdit, " : "") + (deleteMode ? "DeleteMode, " : ""), bitmap, 2, editorPanel.height + 28);
+		Text.render("Total Compoments: " + editorPanel.count() + ", Active Modes: " + (isCompomentEditFieldMode ? "ObjectFieldEdit, " : "") + (deleteMode ? "DeleteMode, " : ""), bitmap, 2, editorPanel.height + 28);
 	}
 
 	public void openScreen() {		
 		editorPanel.setSize(engine.getWidth() - 108, engine.getHeight() - 40);
 		
-		this.getContentPane().clearCompoments();
-		this.getContentPane().addCompoment(editorPanel);
-		this.getContentPane().addCompoment(new Button("generateCode", 2, editorPanel.height + 2, 100, 20).setRunnable(() -> {
+		this.getContentPane().clear();
+		this.getContentPane().add(editorPanel);
+		this.getContentPane().add(new Button("generateCode", 2, editorPanel.height + 2, 100, 20).setRunnable(() -> {
 			this.engine.setCurrentScreen(new ShowGeneratedCodeScreen(this, generateCode()));
 			return;
 		}));
-		this.getContentPane().addCompoment(new Button("back", 102, editorPanel.height + 2, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("back", 102, editorPanel.height + 2, 100, 20).setRunnable(() -> {
 			this.engine.setCurrentScreen(parent);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("clear", 202, editorPanel.height + 2, 100, 20).setRunnable(() -> {
-			this.editorPanel.clearCompoments();
+		this.getContentPane().add(new Button("clear", 202, editorPanel.height + 2, 100, 20).setRunnable(() -> {
+			this.editorPanel.clear();
 		}));
 		
-		this.getContentPane().addCompoment(new Button("button", engine.getWidth() - 106, 2, 49, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("button", engine.getWidth() - 106, 2, 49, 20).setRunnable(() -> {
 			selectedCompoment = new Button("newButton", 0, 0, 100, 20);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("label", engine.getWidth() - 56, 2, 49, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("label", engine.getWidth() - 56, 2, 49, 20).setRunnable(() -> {
 			selectedCompoment = new Text("newLabel", 0, 0);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("panel", engine.getWidth() - 106, 26, 49, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("panel", engine.getWidth() - 106, 26, 49, 20).setRunnable(() -> {
 			Panel panel = new Panel(0, 0, 100, 100);
 			panel.drawX = true;
 			selectedCompoment = panel;
 		}));
 		
-		this.getContentPane().addCompoment(new Button("image", engine.getWidth() - 56, 26, 49, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("image", engine.getWidth() - 56, 26, 49, 20).setRunnable(() -> {
 			selectedCompoment = new RenderImage(IOResource.missingTexture, 0, 0);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("textField", engine.getWidth() - 106, 50, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("textField", engine.getWidth() - 106, 50, 100, 20).setRunnable(() -> {
 			selectedCompoment = new TextField("newTextField", 0, 0, 100, 20);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("linkButton", engine.getWidth() - 106, 74, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("linkButton", engine.getWidth() - 106, 74, 100, 20).setRunnable(() -> {
 			selectedCompoment = new LinkButton("newLinkButton", 0, 0, 100, 20);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("linkText", engine.getWidth() - 106, 98, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("linkText", engine.getWidth() - 106, 98, 100, 20).setRunnable(() -> {
 			selectedCompoment = new LinkText("newLinkText", 0, 0);
 		}));
 		
-		this.getContentPane().addCompoment(new Button("imageButton", engine.getWidth() - 106, 122, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("imageButton", engine.getWidth() - 106, 122, 100, 20).setRunnable(() -> {
 			selectedCompoment = new ImageButton(IOResource.missingTexture, 0, 0, 100, 20);
 		}));
 		
@@ -129,7 +127,7 @@ public class GuiEditorScreen extends Screen {
 			isCompomentEditFieldMode = !isCompomentEditFieldMode;
 		}));*/
 		
-		this.getContentPane().addCompoment(new Button("deleteCompoment", engine.getWidth() - 106, 162, 100, 15).setRunnable(() -> {
+		this.getContentPane().add(new Button("deleteCompoment", engine.getWidth() - 106, 162, 100, 15).setRunnable(() -> {
 			deleteMode = !deleteMode;
 		}));
 		
@@ -153,18 +151,18 @@ public class GuiEditorScreen extends Screen {
 			
 			if (deleteMode) {
 				if (isTouch2) {
-					this.removeCompoment(this.getCompoment(new Point(-x, -y)));
+					this.remove(this.get(new Point(-x, -y)));
 				}
 			} else if (isCompomentEditFieldMode) {
 				if (selectedCompoment != null)
 					selectedCompoment = null;
 				
 				if (isTouch2)
-					DikenEngine.getEngine().setCurrentScreen(new ObjectPropertiesScreen(DikenEngine.getEngine().getCurrentScreen(), this.getCompoment(new Point(-x, -y))));
+					DikenEngine.getEngine().setCurrentScreen(new ObjectPropertiesScreen(DikenEngine.getEngine().getCurrentScreen(), this.get(new Point(-x, -y))));
 				
 			} else {
 				if(selectedCompoment != null && isTouch2) {
-					this.addCompoment(selectedCompoment);
+					this.add(selectedCompoment);
 					selectedCompoment = null;
 				}
 			}
@@ -211,11 +209,11 @@ public class GuiEditorScreen extends Screen {
 		}
 		
 		public void openScreen() {
-			this.getContentPane().addCompoment(new Button("back", 2, 202, 100, 20).setRunnable(() -> {
+			this.getContentPane().add(new Button("back", 2, 202, 100, 20).setRunnable(() -> {
 				this.engine.setCurrentScreen(parent);
 			}));
 			
-			this.getContentPane().addCompoment(new Button("copy", 102, 202, 100, 20).setRunnable(() -> {
+			this.getContentPane().add(new Button("copy", 102, 202, 100, 20).setRunnable(() -> {
 				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 				clipboard.setContents(new java.awt.datatransfer.StringSelection(code), null);
 			}));
@@ -241,12 +239,12 @@ public class GuiEditorScreen extends Screen {
 		}
 		
 		public void openScreen() {
-			this.getContentPane().addCompoment(new Button("//back", 2, 202, 100, 20).setRunnable(() -> {
+			this.getContentPane().add(new Button("//back", 2, 202, 100, 20).setRunnable(() -> {
 				int i = 1;
 				for (Field field : compoment.getClass().getDeclaredFields()) {
 					field.setAccessible(true);
 					try {
-						Object value = ((TextField)this.getContentPane().getCompoment(i)).text;
+						Object value = ((TextField)this.getContentPane().get(i)).text;
 						field.set(compoment, value);
 					} catch (IllegalAccessException e) {
 						e.printStackTrace();
@@ -257,7 +255,7 @@ public class GuiEditorScreen extends Screen {
 				this.engine.setCurrentScreen(parent);
 			}));
 			
-			this.getContentPane().addCompoment(new Button("dontSaveBack", 104, 202, 100, 20).setRunnable(() -> {
+			this.getContentPane().add(new Button("dontSaveBack", 104, 202, 100, 20).setRunnable(() -> {
 				this.engine.setCurrentScreen(parent);
 			}));
 			
@@ -269,8 +267,8 @@ public class GuiEditorScreen extends Screen {
 		            try {
 		                field.setAccessible(true);
 		                Object value = field.get(compoment);
-		                this.getContentPane().addCompoment(new Text(field.getName() + ": ", 2, y, 0xffffff00));
-		                this.getContentPane().addCompoment(new TextField("" + value, 2 + (field.getName().length() * 7), y, 200, 20));
+		                this.getContentPane().add(new Text(field.getName() + ": ", 2, y, 0xffffff00));
+		                this.getContentPane().add(new TextField("" + value, 2 + (field.getName().length() * 7), y, 200, 20));
 		            } catch (IllegalAccessException e) {
 		                ;
 		            }

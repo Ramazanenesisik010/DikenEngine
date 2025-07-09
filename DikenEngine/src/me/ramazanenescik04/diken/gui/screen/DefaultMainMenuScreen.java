@@ -2,7 +2,9 @@ package me.ramazanenescik04.diken.gui.screen;
 
 import java.net.URI;
 
+import me.ramazanenescik04.diken.DEngineBugHandler;
 import me.ramazanenescik04.diken.DikenEngine;
+import me.ramazanenescik04.diken.Timer;
 import me.ramazanenescik04.diken.gui.compoment.Button;
 import me.ramazanenescik04.diken.gui.compoment.LinkButton;
 import me.ramazanenescik04.diken.gui.compoment.Panel;
@@ -13,57 +15,47 @@ import me.ramazanenescik04.diken.resource.ArrayBitmap;
 import me.ramazanenescik04.diken.resource.Bitmap;
 import me.ramazanenescik04.diken.resource.Language;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
+import me.ramazanenescik04.diken.tools.PixelToColor;
+import me.ramazanenescik04.reportbugs.gui.ReportBugGUI;
 
 public class DefaultMainMenuScreen extends Screen {
 	
-	public void render(Bitmap screen) {
-		super.render(screen);
-	}   
-
-	/*public void actionListener(int id) {
-		if(id == 0) {
-			engine.setCurrentScreen(new PerformaceTestScreen(this));
-		}
-		if(id == 1) {
-			engine.setCurrentScreen(new ConsoleScreen(this));
-		}
-		if(id == 2) {
-			engine.gManager.saveConfig();
-			Display.destroy();	
-			System.exit(0);
-		}
-        if(id == 4) {
-			engine.setCurrentScreen(new SoundTest(this));
-		}
-        // Silinecek
-		if(id == 3) {
-			try {
-				if(Desktop.isDesktopSupported()) {
-					Desktop desktop = Desktop.getDesktop();
-					desktop.browse(new URI("https://github.com/Ramazanenesisik010/DikenEngine"));
-				}
-			} catch (IOException e) {
-			} catch (URISyntaxException e) {
-			}
-		}
-		if(id == 5) {
-			engine.setCurrentScreen(new DES(this));
-		}
-	}*/
+	private Timer darknessTimer; // Zamanla ekran karanlıklaşacak
+	private int alpha = 1; // Ekranın başlangıçta görünürlüğü
 
 	public void openScreen() {		
+		darknessTimer = new Timer((ct, mt, st, et, isEnd) -> {
+			if (isEnd) {
+				engine.setCurrentScreen(new WhereAmIScreen());
+			} else {
+				float t = (float) ct / mt; // 0.0 → 1.0
+		        int value = (int) (t * 255);
+				alpha = value;
+			}
+		}, 0, 1200000); // 20 dakika sonra karanlıklaşacak
 		ArrayBitmap icon = (ArrayBitmap) ResourceLocator.getResource("bgd-tiles");
 		DMMPanel panel = new DMMPanel(engine.getWidth(), engine.getHeight());
 		panel.setBackground(new DownBackground(icon.bitmap[0][0]));		
 		this.setContentPane(panel);
+		darknessTimer.start();
+	}
+	
+	public void render(Bitmap bitmap) {
+		super.render(bitmap);
+		
+		var color = PixelToColor.toColor(alpha, 0, 0, 0);
+		
+		bitmap.blendFill(0, 0, engine.getWidth(), engine.getHeight(), color);
 	}
 	
 	public void closeScreen() {
+		darknessTimer.stop();
 	}
 	
 	public void resized() {
-		this.getContentPane().getCompoment(3).setLocation(10, engine.getHeight() - (1 * 20));
-		this.getContentPane().getCompoment(4).setLocation(10, engine.getHeight() - (2 * 20));
+		this.getContentPane().get(3).setLocation(10, engine.getHeight() - (1 * 20));
+		this.getContentPane().get(4).setLocation(10, engine.getHeight() - (2 * 20));
+		this.getContentPane().get(5).setLocation(110, engine.getHeight() - (2 * 20));
 	}
 	
 	private static class DMMPanel extends Panel {
@@ -84,21 +76,24 @@ public class DefaultMainMenuScreen extends Screen {
 		public void init(DikenEngine engine) {
 			Language lang = Language.i;
 			
-			clearCompoments();
+			clear();
 			Button performaceButton = new Button(lang.languageValue("Demo Ekranını Aç"), 10, 100, 200, 15).setRunnable(() -> {
-				engine.setCurrentScreen(new DemoScreen(engine.getCurrentScreen()));
+				//???
 			});
 			performaceButton.active = false;
-			addCompoment(performaceButton);
-			addCompoment(new Button(lang.languageValue("dmainmenu.setting"), 10, 100 + (1 * 20), 200, 15).setRunnable(() -> {
+			add(performaceButton);
+			add(new Button(lang.languageValue("dmainmenu.setting"), 10, 100 + (1 * 20), 200, 15).setRunnable(() -> {
 				engine.wManager.addWindow(new SettingsWindow()); 
 			}));
-			addCompoment(new Button(lang.languageValue("dmainmenu.exit"), 10, 100 + (2 * 20), 200, 15).setRunnable(() -> {
+			add(new Button(lang.languageValue("dmainmenu.exit"), 10, 100 + (2 * 20), 200, 15).setRunnable(() -> {
 				engine.close();
 			}));
-			addCompoment(new LinkButton("Github", 10, engine.getHeight() - (1 * 20), 200, 15).setURI(URI.create("https://github.com/Ramazanenesisik010/DikenEngine")));
-			addCompoment(new Button(lang.languageValue("dmainmenu.about"), 10, engine.getHeight() - (2 * 20), 200, 15).setRunnable(() -> {
+			add(new LinkButton("Github", 10, engine.getHeight() - (1 * 20), 200, 15).setURI(URI.create("https://github.com/Ramazanenesisik010/DikenEngine")));
+			add(new Button(lang.languageValue("dmainmenu.about"), 10, engine.getHeight() - (2 * 20), 100, 15).setRunnable(() -> {
 				engine.wManager.addWindow(new AboutWindow());
+			}));
+			add(new Button(lang.languageValue("dmainmenu.reportbug"), 110, engine.getHeight() - (2 * 20), 100, 15).setRunnable(() -> {
+				ReportBugGUI.showErrorReport(new DEngineBugHandler());
 			}));
 		}
 		

@@ -9,7 +9,6 @@ import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
 public abstract class Screen {
-	//private List<GuiCompoment> guiObjects = new ArrayList<>();
 	private Panel contentPane = new Panel(0, 0, 1, 1);
 	public DikenEngine engine;
 	

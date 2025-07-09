@@ -1,7 +1,7 @@
 package me.ramazanenescik04.diken.gui.window;
 
 import me.ramazanenescik04.diken.DikenEngine;
-import me.ramazanenescik04.diken.GetOS;
+import me.ramazanenescik04.diken.SystemInfo;
 import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.gui.compoment.Text;
 import me.ramazanenescik04.diken.gui.screen.StaticBackground;
@@ -29,7 +29,7 @@ public class SettingsWindow extends Window {
 			setBackground(new StaticBackground(Bitmap.createClearedBitmap(16, 16, 0xffa0a0a0)));
 		}
 		
-		private GetOS.OS os = GetOS.getOS();
+		private SystemInfo.OS os = SystemInfo.instance.getOS();
 		
 		public Bitmap render() {
 			Bitmap bitmap = super.render();

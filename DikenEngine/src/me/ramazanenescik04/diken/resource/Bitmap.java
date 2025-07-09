@@ -9,6 +9,9 @@ import java.util.*;
 
 import javax.imageio.ImageIO;
 
+import me.ramazanenescik04.diken.gui.UniFont;
+import me.ramazanenescik04.diken.gui.compoment.Text;
+
 public class Bitmap implements IResource {
 	private static final long serialVersionUID = 1L;
 	public final int[] pixels;
@@ -53,7 +56,7 @@ public class Bitmap implements IResource {
 		g.drawImage(bitmapImg.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST), 0, 0, null);
 		g.dispose();
 		
-		resizedBitmap = IOResource.toBitmap(resizedBitmapImg);
+		resizedBitmap = toBitmap(resizedBitmapImg);
 		
 		return resizedBitmap;
 	}
@@ -392,7 +395,7 @@ public class Bitmap implements IResource {
 	    int srcB = color & 0xff;
 	    
 	    // Alfa değeri belirtilmemişse (0 ise), tamamen opak kabul et
-	    if (a == 0) a = 255;
+	    //if (a == 0) a = 255; // WTF
 	    
 	    for (int y = y0; y <= y1; y++) {
 	        for (int x = x0; x <= x1; x++) {
@@ -625,4 +628,57 @@ public class Bitmap implements IResource {
 			e.printStackTrace();
 		}
 	}
+	
+	public void drawText(String text, int x, int y, int color, boolean center) {
+		x += xOffs;
+		y += yOffs;
+		if (center) {
+			Text.renderCenter(text, this, x, y, color);
+		} else {
+			Text.render(text, this, x, y, color);
+		}
+	}
+	
+	public void drawText(String text, int x, int y, boolean center) {
+		x += xOffs;
+		y += yOffs;
+		if (center) {
+			Text.renderCenter(text, this, x, y);
+		} else {
+			Text.render(text, this, x, y);
+		}
+	}
+	
+	public void drawText(String text, int x, int y, UniFont font, boolean center) {
+		x += xOffs;
+		y += yOffs;
+		if (center) {
+			Text.renderCenter(text, this, x, y, font);
+		} else {
+			Text.render(text, this, x, y, font);
+		}
+	}
+	
+	public void drawText(String text, int x, int y, int color, UniFont font, boolean center) {
+		x += xOffs;
+		y += yOffs;
+		if (center) {
+			Text.renderCenter(text, this, x, y, color, font);
+		} else {
+			Text.render(text, this, x, y, color, font);
+		}
+	}
+	
+	public static Bitmap toBitmap(BufferedImage img) {
+		if (img == null) {
+			img = IOResource.missingTexture.toImage();
+		}
+		   
+		int sw = img.getWidth();
+		int sh = img.getHeight();
+		Bitmap result = new Bitmap(sw, sh);
+		img.getRGB(0, 0, sw, sh, result.pixels, 0, sw);
+		return result;
+	}
+
 }

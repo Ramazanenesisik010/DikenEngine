@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 
 import com.sun.jna.*;
 
-import me.ramazanenescik04.diken.GetOS;
+import me.ramazanenescik04.diken.SystemInfo;
 
 /**
  * Bataryanın Bilgisini verir.
@@ -35,13 +35,13 @@ public abstract class BatteryInfo {
 	
 	public static BatteryInfo getInstance() {
 		if (instance == null) {
-			GetOS.OS os = GetOS.getOS();
+			SystemInfo.OS os = SystemInfo.instance.getOS();
 			
-			if (os == GetOS.OS.Windows) {
+			if (os == SystemInfo.OS.WINDOWS) {
 				instance = new WindowsBatteryInfo();
-			} else if (os == GetOS.OS.Mac) {
+			} else if (os == SystemInfo.OS.MACOS) {
 				instance = new LinuxBatteryInfo();
-			} else if (os == GetOS.OS.Linux) {
+			} else if (os == SystemInfo.OS.LINUX) {
 				instance = new MacBatteryInfo();
 			} else {
 				instance = null;
@@ -310,7 +310,7 @@ public abstract class BatteryInfo {
 		        
 		        int maxCapacity = -1;
 		        int currentCapacity = -1;
-		        int designCapacity = -1;
+		        //int designCapacity = -1;
 		        
 		        while ((ioregLine = ioregReader.readLine()) != null) {
 		            if (ioregLine.contains("MaxCapacity")) {
@@ -318,7 +318,7 @@ public abstract class BatteryInfo {
 		            } else if (ioregLine.contains("CurrentCapacity")) {
 		                currentCapacity = Integer.parseInt(ioregLine.replaceAll(".*\"CurrentCapacity\"\\s*=\\s*(\\d+).*", "$1"));
 		            } else if (ioregLine.contains("DesignCapacity")) {
-		                designCapacity = Integer.parseInt(ioregLine.replaceAll(".*\"DesignCapacity\"\\s*=\\s*(\\d+).*", "$1"));
+		                //designCapacity = Integer.parseInt(ioregLine.replaceAll(".*\"DesignCapacity\"\\s*=\\s*(\\d+).*", "$1"));
 		            }
 		        }
 		        

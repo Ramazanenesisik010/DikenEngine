@@ -25,7 +25,7 @@ public class Panel extends GuiCompoment {
 		this(0, 0, 100, 100);
 	}
 
-	public void addCompoment(GuiCompoment compoment) {
+	public void add(GuiCompoment compoment) {
 		if (compoment instanceof Panel) {
 			Panel panel = (Panel) compoment;
 			panel.init(DikenEngine.getEngine());
@@ -33,23 +33,23 @@ public class Panel extends GuiCompoment {
 		this.compoments.add(compoment);
 	}
 	
-	public void removeCompoment(GuiCompoment compoment) {
+	public void remove(GuiCompoment compoment) {
 		this.compoments.remove(compoment);
 	}
 	
-	public void clearCompoments() {
+	public void clear() {
 		this.compoments.clear();
 	}
 	
-	public void removeCompoment(int index) {
+	public void remove(int index) {
 		this.compoments.remove(index);
 	}
 	
-	public GuiCompoment getCompoment(int index) {
+	public GuiCompoment get(int index) {
 		return this.compoments.get(index);
 	}
 	
-	public GuiCompoment getCompoment(Point point) {
+	public GuiCompoment get(Point point) {
 		for (GuiCompoment compoment : this.compoments) {
 			if (compoment.intersects(new Hitbox(point.x - this.x, point.y - this.y, 1, 1))) {
 				return compoment;
@@ -58,7 +58,7 @@ public class Panel extends GuiCompoment {
 		return null;
 	}
 	
-	public int getCompomentCount() {
+	public int count() {
 		return this.compoments.size();
 	}
 

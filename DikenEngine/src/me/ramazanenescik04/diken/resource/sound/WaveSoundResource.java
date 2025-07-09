@@ -2,9 +2,6 @@ package me.ramazanenescik04.diken.resource.sound;
 
 import org.lwjgl.openal.AL10;
 
-import me.ramazanenescik04.diken.resource.EnumResource;
-import me.ramazanenescik04.diken.resource.IResource;
-
 public class WaveSoundResource implements SoundResource {
 	private static final long serialVersionUID = 1L;
 	

@@ -19,7 +19,6 @@ public class Config {
 
 	public Config() {
 		defaultConfig.setProperty("fullscreen", "false");
-		defaultConfig.setProperty("show_fps", "false");
 		defaultConfig.setProperty("console", "false");
 		defaultConfig.setProperty("sync", "true");
 		defaultConfig.setProperty("legacy-crash", "false");

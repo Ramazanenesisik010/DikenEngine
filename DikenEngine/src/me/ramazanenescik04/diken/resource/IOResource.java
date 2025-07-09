@@ -21,7 +21,7 @@ public class IOResource {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			return toBitmap(img);
+			return Bitmap.toBitmap(img);
 		} else if (_enum == EnumResource.SOUND) {
 			return SoundManager.loadSound(stream);
 		} else if (_enum == EnumResource.CURSOR) {
@@ -79,17 +79,4 @@ public class IOResource {
 		bitmap.fill(8, 0, 15, 7, 0xff76428a);
 		return bitmap;
 	}
-	
-	public static Bitmap toBitmap(BufferedImage img) {
-		if (img == null) {
-			img = missingTexture.toImage();
-		}
-		   
-		int sw = img.getWidth();
-		int sh = img.getHeight();
-		Bitmap result = new Bitmap(sw, sh);
-		img.getRGB(0, 0, sw, sh, result.pixels, 0, sw);
-		return result;
-	}
-
 }

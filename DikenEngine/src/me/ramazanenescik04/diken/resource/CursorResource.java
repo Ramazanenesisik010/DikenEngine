@@ -5,7 +5,6 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
-import org.lwjgl.input.Mouse;
 
 public class CursorResource implements IResource {
 	private static final long serialVersionUID = 1L;

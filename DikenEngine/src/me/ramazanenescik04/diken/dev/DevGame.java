@@ -26,9 +26,9 @@ public class DevGame extends Screen implements IGame {
 	public void openScreen() {
 		this.engine.setFullscreen(true);
 		
-		this.getContentPane().clearCompoments();
+		this.getContentPane().clear();
 		
-		this.getContentPane().addCompoment(new Button("addGamePath", 2, 2, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("addGamePath", 2, 2, 100, 20).setRunnable(() -> {
 			try {
 				JarFile jarFile = null;
 			
@@ -99,7 +99,7 @@ public class DevGame extends Screen implements IGame {
 		}));
 		
 		// Inside the Runnable for "createProject" button
-		this.getContentPane().addCompoment(new Button("createProject", 2, 26, 100, 20).setRunnable(() -> {
+		this.getContentPane().add(new Button("createProject", 2, 26, 100, 20).setRunnable(() -> {
 		    String[] options = {"Eclipse", "IntelliJ IDEA"};
 		    int ideChoice = JOptionPane.showOptionDialog(null, "Select IDE", "Project Type",
 		            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
@@ -135,13 +135,21 @@ public class DevGame extends Screen implements IGame {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-		        File dikenJar = new File(jarPath);
-		        if (dikenJar.exists()) {
-		            try (InputStream in = new FileInputStream(dikenJar);
-		                 OutputStream out = new FileOutputStream(new File(libDir, "DikenEngine.jar"))) {
-		                byte[] buf = new byte[4096];
-		                int len;
-		                while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+		        @SuppressWarnings("unused")
+				File dikenJar = new File(jarPath);
+		        String[] libFiles = {"engineLib.jar", "commons-lang3-3.17.0.jar", "jinput.jar", "lwjgl.jar", "lwjgl-uril.jar", "jna-5.12.1.jar"};
+		        for (String libFile : libFiles) {
+		            File sourceFile = new File(libFile);
+		            if (sourceFile.exists() && sourceFile.isFile()) {
+		                try (InputStream in = new FileInputStream(sourceFile);
+		                     OutputStream out = new FileOutputStream(new File(libDir, libFile))) {
+		                    byte[] buf = new byte[4096];
+		                    int len;
+		                    while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+		                }
+		            } else {
+		                JOptionPane.showMessageDialog(null, "Required library file " + libFile + " not found.");
+		                break;
 		            }
 		        }
 		        
@@ -184,7 +192,7 @@ public class DevGame extends Screen implements IGame {
 		}));
 
 		
-		this.getContentPane().addCompoment(new Button("openGuiEditor", 2, 50, 100, 20).setRunnable(() -> {			
+		this.getContentPane().add(new Button("openGuiEditor", 2, 50, 100, 20).setRunnable(() -> {			
 			this.engine.setCurrentScreen(new GuiEditorScreen(this));
 		}));
 	}

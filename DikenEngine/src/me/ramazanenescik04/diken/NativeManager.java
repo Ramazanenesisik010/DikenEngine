@@ -1,7 +1,6 @@
 package me.ramazanenescik04.diken;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +15,7 @@ public class NativeManager {
 	}
 	
 	public static void loadLibraryFromJar(String path) throws IOException {
-		GetOS.OS os = GetOS.getOS();
+		SystemInfo.OS os = SystemInfo.instance.getOS();
 		
 		path = "/natives/" + path;
 		
@@ -50,9 +49,9 @@ public class NativeManager {
     }
 	
 	public static void loadLibraryFromOSPathFromJar(String path) throws IOException {
-		GetOS.OS os = GetOS.getOS();
+		SystemInfo.OS os = SystemInfo.instance.getOS();
 		
-		path = "/natives/" + os.name().toLowerCase() + path;
+		path = "/natives/" + os.name() + path;
 		
 		if(!path.endsWith(getLibraryExtension(os))) {
 			DikenEngine.log("Native kütüphanenin uzantısı uyumsuz: " + path + " != " + getLibraryExtension(os));
@@ -103,20 +102,20 @@ public class NativeManager {
 	}
     
     private static String getLibraryExtension() {
-        GetOS.OS os = GetOS.getOS();
-        if (os == GetOS.OS.Windows) {
+    	SystemInfo.OS os = SystemInfo.instance.getOS();
+        if (os == SystemInfo.OS.WINDOWS) {
             return ".dll";
-        } else if (os == GetOS.OS.Mac) {
+        } else if (os == SystemInfo.OS.MACOS) {
             return ".dylib";
         } else {
             return ".so";
         }
     }
     
-    private static String getLibraryExtension(GetOS.OS os) {
-        if (os == GetOS.OS.Windows) {
+    private static String getLibraryExtension(SystemInfo.OS os) {
+        if (os == SystemInfo.OS.WINDOWS) {
             return ".dll";
-        } else if (os == GetOS.OS.Mac) {
+        } else if (os == SystemInfo.OS.MACOS) {
             return ".dylib";
         } else {
             return ".so";

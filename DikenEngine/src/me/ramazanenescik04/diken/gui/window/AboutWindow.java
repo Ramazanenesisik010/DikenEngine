@@ -39,7 +39,7 @@ public class AboutWindow extends Window {
 		Language lang = Language.i;
 		
 		contentPane.setBackground(new StaticBackground(Bitmap.createClearedBitmap(32, 32, 0xffaaaaaa)));
-		contentPane.addCompoment(new Button(lang.languageValue("gui.done"), contentPane.width - 76, contentPane.height - 26, 70, 20).setRunnable(() -> {
+		contentPane.add(new Button(lang.languageValue("gui.done"), contentPane.width - 76, contentPane.height - 26, 70, 20).setRunnable(() -> {
 			this.close();
 		}));
 		
@@ -47,7 +47,7 @@ public class AboutWindow extends Window {
 		
 		Text.render("DikenEngine \n\rYapan: Ramazanenescik04", textBitmap, 2, 2);
 		
-		contentPane.addCompoment(new RenderImage(textBitmap, 2, 2));
+		contentPane.add(new RenderImage(textBitmap, 2, 2));
 		
 		
 	}

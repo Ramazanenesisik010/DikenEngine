@@ -30,7 +30,7 @@ public class EclipseIDEProjectWizard implements IDEProjectWizard {
 	        // .classpath file
 	        String classpathXml = "<classpath>\n" +
 	                "  <classpathentry kind=\"src\" path=\"src\"/>\n" +
-	                "  <classpathentry kind=\"lib\" path=\"lib/DikenEngine.jar\"/>\n" +
+	                "  <classpathentry kind=\"lib\" path=\"lib/engineLib.jar\"/>\n" +
 	                "  <classpathentry kind=\"lib\" path=\"lib/commons-lang3-3.17.0.jar\"/>\n" +
 	                "  <classpathentry kind=\"lib\" path=\"lib/jinput.jar\"/>\n" +
 	                "  <classpathentry kind=\"lib\" path=\"lib/jna-5.12.1.jar\"/>\n" +

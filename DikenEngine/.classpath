@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-11-openjdk-amd64">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -28,5 +28,6 @@
 			<attribute name="javadoc_location" value="jar:file:/D:/RetroMCP/libraries/org/adacpeaa/commons-lang3-3.17.0-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="/home/ramazanenescik04/eclipse-workspace/DikenEngine/DikenEngine/libs/ReportBugs.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

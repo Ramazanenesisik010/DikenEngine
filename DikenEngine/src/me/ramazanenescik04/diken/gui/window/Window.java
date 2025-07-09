@@ -7,7 +7,7 @@ import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.gui.compoment.*;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
-public abstract class Window extends GuiCompoment {
+public class Window extends GuiCompoment {
 	private static final long serialVersionUID = 1L;
 	
 	private String title = "";
@@ -27,7 +27,7 @@ public abstract class Window extends GuiCompoment {
 		barButtons[0] = new Button("X", width - 18, 2, 12, 12).setButtonColor(0xffff0000);
 	}
 	
-	protected abstract void open();
+	protected void open() {};
 
 	public String getTitle() {
 		return title;

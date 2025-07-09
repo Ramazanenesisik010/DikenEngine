@@ -103,7 +103,7 @@ public class UniFont {
 			    font_g2d.setColor(Color.WHITE);
 			    font_g2d.drawString("" + (char)i, 0, fontMetrics.getAscent());
 			    font_g2d.dispose();
-			    charBitmaps.put("" + (char)i, IOResource.toBitmap(font_img));
+			    charBitmaps.put("" + (char)i, Bitmap.toBitmap(font_img));
 			}
 		}
 			    
