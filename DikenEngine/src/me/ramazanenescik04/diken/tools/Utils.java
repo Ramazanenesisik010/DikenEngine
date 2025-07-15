@@ -91,4 +91,14 @@ public class Utils {
 		
 		return total * 1000; // Convert to milliseconds
 	}
+	
+	// currentTime ve maxTime, System.currentTimeMillis() gibi değerler olamaz!
+	public static int toProccesBarValue(long currentTime, long maxTime, int maxValue) {
+		if (maxTime <= 0) {
+			return 0;
+		}
+		
+		double percentage = (double) currentTime / maxTime;
+		return (int) (percentage * maxValue);
+	}
 }

@@ -3,6 +3,7 @@ package me.ramazanenescik04.diken.gui.compoment;
 import java.util.*;
 
 import me.ramazanenescik04.diken.DikenEngine;
+import me.ramazanenescik04.diken.gui.UniFont;
 import me.ramazanenescik04.diken.resource.Bitmap;
 
 public class TextLine extends GuiCompoment {
@@ -12,6 +13,8 @@ public class TextLine extends GuiCompoment {
 	private boolean editable = true;
 	
 	private List<String> textLines = new ArrayList<>();
+	private UniFont font = DikenEngine.getEngine().defaultFont;
+	private int color = 0xffffffff, bgColor = 0xff484848; // Default text color is white
 
 	public TextLine(int x, int y, int width, int height) {
 		super(x, y, width, height);
@@ -73,6 +76,33 @@ public class TextLine extends GuiCompoment {
 		return this;
 	}
 	
+	public UniFont getFont() {
+		return font;
+	}
+	
+	public TextLine setFont(UniFont font) {
+		this.font = font;
+		return this;
+	}
+	
+	public int getColor() {
+		return color;
+	}
+	
+	public TextLine setColor(int color) {
+		this.color = color;
+		return this;
+	}
+	
+	public int getBgColor() {
+		return bgColor;
+	}
+	
+	public TextLine setBgColor(int bgColor) {
+		this.bgColor = bgColor;
+		return this;
+	}
+	
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (!(obj instanceof TextLine)) return false;
@@ -107,9 +137,18 @@ public class TextLine extends GuiCompoment {
 	@Override
 	public Bitmap render() {
 		Bitmap bitmap = super.render();
-		if (isFocused) {
-			// Draw a focus indicator, e.g., a border or background change
-			bitmap.fill(0, 0, width, height, 0xFFFF0000); // Example: red border
+		bitmap.clear(bgColor);
+		
+		bitmap.box(0, 0, width - 1, height - 1, isFocused() ? 0xffffff00 : 0xffffffff);
+		
+		//Render Text Lines
+		for (int i = 0; i < textLines.size(); i++) {
+			String line = textLines.get(i);
+			int averageHeight = Text.stringBitmapAverageHeight(line, DikenEngine.getEngine().defaultFont);
+			int yOffset = 2 + (i * averageHeight); // Assuming each line is 12 pixels tall
+			if (yOffset < height - 2) { // Ensure we don't draw outside the bounds
+				Text.render(line, bitmap, 2, yOffset);
+			}
 		}
 		return bitmap;
 	}
@@ -124,6 +163,15 @@ public class TextLine extends GuiCompoment {
 
 	@Override
 	public void mouseClicked(int x, int y, int button, boolean isTouch) {
+		if (isTouch && button == 0) {
+			if (editable) {
+				this.isFocused = !this.isFocused; // Toggle focus on click
+			} else {
+				this.isFocused = false; // If not editable, lose focus
+			}
+		} else {
+			this.isFocused = false; // Lose focus on other button clicks
+		}
 	}
 
 	@Override

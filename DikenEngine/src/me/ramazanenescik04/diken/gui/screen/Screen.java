@@ -32,8 +32,12 @@ public abstract class Screen {
 		contentPane.keyPressed(eventCharacter, eventKey);
 	}
 
-	private void mouseClick(int mouseX, int mouseY, int eventButton) {
-		contentPane.mouseClicked(mouseX, mouseY, eventButton, (InputHandler.isMouseOnScreen() && engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))));
+	public void mouseClick(int mouseX, int mouseY, int eventButton, boolean isScreenActionMode, boolean isMouseOnScreen) {
+		contentPane.mouseClicked(mouseX, mouseY, eventButton, isScreenActionMode && isMouseOnScreen);
+	}
+	
+	public void mouseGetInfo(int mouseX, int mouseY, boolean isScreenActionMode, boolean isMouseOnScreen) {
+		contentPane.mouseGetInfo(mouseX, mouseY, isMouseOnScreen && isScreenActionMode);
 	}
 	
 	public void openScreen() {
@@ -61,10 +65,10 @@ public abstract class Screen {
 		int mouseX = InputHandler.getMousePosition().x;
 		int mouseY = InputHandler.getMousePosition().y;
 		
-		contentPane.mouseGetInfo(mouseX, mouseY, (InputHandler.isMouseOnScreen() && engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))));
+		this.mouseGetInfo(mouseX, mouseY, (engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))), (InputHandler.isMouseOnScreen()));
 		
 		if (Mouse.getEventButtonState()) {
-			this.mouseClick(mouseX, mouseY, Mouse.getEventButton());
+			this.mouseClick(mouseX, mouseY, Mouse.getEventButton(), (InputHandler.isMouseOnScreen()), (engine.wManager.screenActionMode(new java.awt.Point(mouseX, mouseY))));
 		}
 	}
 	

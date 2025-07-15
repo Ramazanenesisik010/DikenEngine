@@ -358,4 +358,14 @@ public class WindowManager {
     		activeWindow.mouseGetInfo(mousePos.x, mousePos.y, isTouch);
     	}
     }
+
+	public boolean isWindowActive(Class<?> class1) {
+		for (Window window : windows) {
+			if (window.getClass() == class1) {
+				activeWindow = window;
+				return true;
+			}
+		}
+		return false;
+	}
 }

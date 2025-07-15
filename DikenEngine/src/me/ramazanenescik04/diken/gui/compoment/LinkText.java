@@ -22,16 +22,9 @@ public class LinkText extends GuiLink {
 		this.text = new Text(text, x, y, 0xFFFFFFFF, font);
 	}
 	
-	public LinkText(String text, int x, int y, URI uri, UniFont font) {
-		super(x, y, 2, 2);
+	public LinkText setURI(URI uri) {
 		_setURI(uri);
-		this.text = new Text(text, x, y, 0xFFFFFFFF, font);
-	}
-	
-	public LinkText(String text, int x, int y, URI uri) {
-		super(x, y, 2, 2);
-		_setURI(uri);
-		this.text = new Text(text, x, y, 0xFFFFFFFF, DikenEngine.getEngine().defaultFont);
+		return this;
 	}
 
 	public Bitmap render() {

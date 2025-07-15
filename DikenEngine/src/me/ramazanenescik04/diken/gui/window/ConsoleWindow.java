@@ -1,5 +1,7 @@
 package me.ramazanenescik04.diken.gui.window;
 
+import org.lwjgl.input.Keyboard;
+
 import me.ramazanenescik04.diken.gui.compoment.Button;
 import me.ramazanenescik04.diken.gui.compoment.Panel;
 import me.ramazanenescik04.diken.gui.compoment.TextField;
@@ -22,9 +24,9 @@ public class ConsoleWindow extends Window {
 		textLine.setActive(false);
 		contentPane.add(textLine);
 		
-		TextField textField = new TextField(0, contentPane.height - 20, contentPane.width - 20, 20);
+		TextField textField = new TextField(0, contentPane.height - 20, contentPane.width - 50, 20);
 		
-		Button sendButton = new Button("Gönder", 0, contentPane.height - 20, 16, 16).setRunnable(() -> {
+		Button sendButton = new Button("Gönder", 0, contentPane.height - 20, 50 - 4, 16).setRunnable(() -> {
 			String text = textField.text;
 			if (!text.isEmpty()) {
 				textLine.add(text);
@@ -44,10 +46,26 @@ public class ConsoleWindow extends Window {
 		textLine.setSize(contentPane.width, contentPane.height - 20);
 		
 		Button sendButton = (Button) contentPane.get(1);
-		sendButton.setLocation(contentPane.width - 20, contentPane.height - 20);
+		sendButton.setLocation(contentPane.width - 50, contentPane.height - 20);
 		
 		TextField textField = (TextField) contentPane.get(2);
 		textField.setLocation(0, contentPane.height - 20);
-		textField.setSize(contentPane.width - 20, 20);
+		textField.setSize(contentPane.width - 50, 20);
+	}
+
+	public void keyPressed(char var1, int var2) {
+		super.keyPressed(var1, var2);
+		
+		if (var2 == Keyboard.KEY_RETURN || var2 == Keyboard.KEY_NUMPADENTER) {
+			Panel contentPane = this.getContentPane();
+			TextField textField = (TextField) contentPane.get(2);
+			TextLine textLine = (TextLine) contentPane.get(0);
+			
+			String text = textField.text;
+			if (!text.isEmpty()) {
+				textLine.add(text);
+				textField.text = "";
+			}
+		}
 	}
 }

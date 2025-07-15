@@ -3,6 +3,8 @@ package me.ramazanenescik04.diken.gui.window;
 import java.awt.Color;
 import java.awt.Point;
 
+import org.lwjgl.input.Keyboard;
+
 import me.ramazanenescik04.diken.DikenEngine;
 import me.ramazanenescik04.diken.gui.compoment.*;
 import me.ramazanenescik04.diken.resource.Bitmap;
@@ -135,6 +137,10 @@ public class Window extends GuiCompoment {
 
 	public void keyPressed(char var1, int var2) {
 		contentPane.keyPressed(var1, var2);
+		
+		if (var2 == Keyboard.KEY_ESCAPE) {
+			close();
+		}
 	}
 
 	public void mouseClicked(int x, int y, int button, boolean isTouch) {

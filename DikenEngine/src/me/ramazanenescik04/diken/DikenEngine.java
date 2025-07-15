@@ -35,9 +35,9 @@ import me.ramazanenescik04.diken.dev.DevGame;
 import me.ramazanenescik04.diken.game.Config;
 import me.ramazanenescik04.diken.game.GameLoader;
 import me.ramazanenescik04.diken.game.IGame;
-import me.ramazanenescik04.diken.game.TestGame;
 import me.ramazanenescik04.diken.gui.UniFont;
 import me.ramazanenescik04.diken.gui.screen.*;
+import me.ramazanenescik04.diken.gui.window.ConsoleWindow;
 import me.ramazanenescik04.diken.gui.window.WindowManager;
 import me.ramazanenescik04.diken.resource.ArrayBitmap;
 import me.ramazanenescik04.diken.resource.Bitmap;
@@ -47,6 +47,7 @@ import me.ramazanenescik04.diken.resource.IOResource;
 import me.ramazanenescik04.diken.resource.IResource;
 import me.ramazanenescik04.diken.resource.Language;
 import me.ramazanenescik04.diken.resource.ResourceLocator;
+import me.ramazanenescik04.diken.testgame.TestGame;
 import me.ramazanenescik04.diken.tools.*;
 import me.ramazanenescik04.reportbugs.Issue;
 import me.ramazanenescik04.reportbugs.gui.ReportBugGUI;
@@ -54,8 +55,8 @@ import me.ramazanenescik04.reportbugs.gui.ReportBugGUI;
 /**Bu sınıf Diken Engine'in ana sınıfıdır. Bu sınıf, LWJGL kütüphanesini kullanarak oyun motorunu başlatır ve çalıştırır. 
  * @author Ramazanenescik04*/
 public class DikenEngine implements Runnable {
-	public static final String VERSION = "0.7.1";
-	public static final int protocolVersion = 5;
+	public static final String VERSION = "0.7.2";
+	public static final int protocolVersion = 6;
 	
 	public Canvas canvas;
 	public int width;
@@ -401,7 +402,7 @@ public class DikenEngine implements Runnable {
 
 	/** Bu Kodu Şöyle Başlat: new Thread(dikenengine).start(); */
 	public void run() {
-		try {
+		try {			
 			DikenEngine.log("DikenEngine " + VERSION + " Starting...");	
 			
 			defaultFont = UniFont.getFont("default_font");
@@ -584,6 +585,10 @@ public class DikenEngine implements Runnable {
 			
 			crash(e);
 			
+			if (currentScreen != null) {
+				currentScreen.closeScreen();
+			}
+			
 			config.saveConfig();
 			
 			Display.destroy();
@@ -652,6 +657,14 @@ public class DikenEngine implements Runnable {
 				if (Keyboard.getEventKey() == Keyboard.KEY_F3) {
 					this.config.setProperty("debug", 
 							this.config.getProperty("debug").equals("true") ? "false" : "true");
+				}
+				
+				char ch = Keyboard.getEventCharacter();
+				if (Keyboard.getEventKey() == Keyboard.KEY_GRAVE || ch == '"') {
+					if (wManager.isWindowActive(ConsoleWindow.class)) {
+						continue; // Konsol penceresi zaten açıksa, yeni bir tane açma
+					}
+					wManager.addWindow(new ConsoleWindow(2, 2, 200, 200));
 				}
 				
 				if (currentScreen != null) {

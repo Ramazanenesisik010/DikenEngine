@@ -15,7 +15,7 @@ import me.ramazanenescik04.diken.resource.Bitmap;
  */
 public class TextField extends GuiCompoment {
 	
-	public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;	
 	public String text = "";
 	
 	private int counter;
@@ -52,7 +52,6 @@ public class TextField extends GuiCompoment {
 		counter++;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void keyPressed(char var1, int var2) {
 		UniFont defaultFont = DikenEngine.getEngine().defaultFont;
 		if (isFocused) {

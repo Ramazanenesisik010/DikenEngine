@@ -36,7 +36,10 @@ public class LinkButton extends GuiLink {
 	public void tick(DikenEngine engine) {
 		button.tick(engine);
 	}
-	
-	
-	
+
+	public void mouseGetInfo(int x, int y, boolean isTouch) {
+		super.mouseGetInfo(x, y, isTouch);
+		
+		button.mouseGetInfo(x, y, isTouch);
+	}
 }

@@ -12,7 +12,7 @@ import me.ramazanenescik04.diken.resource.Bitmap;
 public class Panel extends GuiCompoment {
 	private static final long serialVersionUID = 1L;
 	private List<GuiCompoment> compoments;
-	private IBackground background;
+	protected IBackground background;
 	
 	public boolean drawX = false;
 
@@ -113,7 +113,22 @@ public class Panel extends GuiCompoment {
 		this.background = downBackground;
 	}
 	
+	public IBackground getBackground() {
+		return this.background;
+	}
+	
 	public void init(DikenEngine engine) {
+	}
+	
+	/**
+	 * Returns the list of components in this panel.
+	 * <br>
+	 * This method provides access to the components contained within the panel.
+	 * 
+	 * @return List of GuiCompoment objects.
+	 */
+	public final List<GuiCompoment> getCompoments() {
+		return compoments;
 	}
 
 	public void mouseGetInfo(int x, int y, boolean isTouch2) {

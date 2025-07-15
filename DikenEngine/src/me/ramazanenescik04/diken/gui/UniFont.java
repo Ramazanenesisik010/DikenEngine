@@ -19,7 +19,6 @@ public class UniFont {
 	
 	private static List<UniFont> unifonts = new ArrayList<UniFont>();
 	
-	@Deprecated
 	public String charTypes = "";
 	
 	public String font_name;
